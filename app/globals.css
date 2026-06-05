@@ -1,0 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Base colors */
+  --background: #0a0a0a;
+  --elevated: #141414;
+  --overlay: #1a1a1a;
+  --border-subtle: #262626;
+  --border-focus: #404040;
+  
+  /* Text colors */
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  
+  /* Accent colors */
+  --accent-primary: #10b981;
+  --accent-secondary: #3b82f6;
+  --accent-warning: #f59e0b;
+  --accent-danger: #ef4444;
+  --accent-purple: #8b5cf6;
+  
+  /* Muscle map colors */
+  --muscle-neglected: #ef4444;
+  --muscle-recovering: #f97316;
+  --muscle-fresh: #22c55e;
+  --muscle-trained-light: #3b82f6;
+  --muscle-trained-heavy: #8b5cf6;
+  
+  /* Safe area insets */
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    @apply dark;
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    min-height: 100vh;
+    min-height: 100dvh;
+    /* Prevent pull-to-refresh on mobile */
+    overscroll-behavior-y: none;
+  }
+  
+  /* Custom scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-focus);
+  }
+  
+  /* Number inputs - remove arrows */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  /* Skeleton loading animation */
+  .skeleton {
+    @apply animate-shimmer;
+    background: linear-gradient(
+      90deg,
+      var(--overlay) 25%,
+      rgba(255, 255, 255, 0.05) 50%,
+      var(--overlay) 75%
+    );
+    background-size: 200% 100%;
+  }
+  
+  /* Card component */
+  .card-app {
+    @apply bg-elevated rounded-xl border border-border p-4;
+  }
+  
+  /* Metric card with ring */
+  .metric-ring {
+    @apply relative flex items-center justify-center;
+  }
+  
+  .metric-ring::before {
+    content: '';
+    @apply absolute inset-0 rounded-full;
+    background: conic-gradient(
+      from 0deg,
+      var(--accent-primary) var(--progress, 0%),
+      var(--border-subtle) var(--progress, 0%)
+    );
+    mask: radial-gradient(circle at center, transparent 65%, black 66%);
+    -webkit-mask: radial-gradient(circle at center, transparent 65%, black 66%);
+  }
+  
+  /* Muscle map styles */
+  .muscle-path {
+    @apply transition-all duration-300 ease-out cursor-pointer;
+    fill: var(--border-subtle);
+  }
+  
+  .muscle-path:hover {
+    @apply opacity-80;
+  }
+  
+  .muscle-path[data-status="neglected"] {
+    fill: var(--muscle-neglected);
+  }
+  
+  .muscle-path[data-status="recovering"] {
+    fill: var(--muscle-recovering);
+  }
+  
+  .muscle-path[data-status="fresh"] {
+    fill: var(--muscle-fresh);
+  }
+  
+  .muscle-path[data-status="trained_light"] {
+    fill: var(--muscle-trained-light);
+  }
+  
+  .muscle-path[data-status="trained_heavy"] {
+    fill: var(--muscle-trained-heavy);
+  }
+  
+  /* Input styles */
+  .input-app {
+    @apply bg-overlay border border-border rounded-lg px-3 py-2 
+           text-foreground placeholder:text-foreground-tertiary
+           focus:outline-none focus:border-border-focus
+           transition-colors duration-200;
+  }
+  
+  /* Button variants */
+  .btn-primary {
+    @apply bg-accent-primary text-white font-medium px-4 py-2 rounded-lg
+           hover:opacity-90 active:scale-[0.98]
+           transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply bg-elevated border border-border text-foreground font-medium px-4 py-2 rounded-lg
+           hover:bg-overlay active:scale-[0.98]
+           transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-ghost {
+    @apply text-foreground-secondary hover:text-foreground font-medium px-4 py-2 rounded-lg
+           hover:bg-overlay
+           transition-all duration-200;
+  }
+  
+  /* Bottom safe area for nav */
+  .pb-safe {
+    padding-bottom: max(1rem, calc(1rem + var(--sab)));
+  }
+  
+  /* FAB animation */
+  .fab-enter {
+    @apply animate-scale-in;
+  }
+  
+  /* Toast styles */
+  .toast-error {
+    @apply bg-elevated border-l-4 border-accent-danger text-foreground 
+           px-4 py-3 rounded-lg shadow-lg;
+  }
+  
+  .toast-success {
+    @apply bg-elevated border-l-4 border-accent-primary text-foreground 
+           px-4 py-3 rounded-lg shadow-lg;
+  }
+  
+  /* Empty state */
+  .empty-state {
+    @apply flex flex-col items-center justify-center text-center p-8;
+  }
+  
+  .empty-state-icon {
+    @apply w-12 h-12 text-foreground-tertiary mb-4;
+  }
+  
+  .empty-state-title {
+    @apply text-h3 text-foreground mb-2;
+  }
+  
+  .empty-state-description {
+    @apply text-body-sm text-foreground-secondary;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Text utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Safe area utilities */
+  .pt-safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .pb-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Tap highlight removal for mobile */
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Prevent text selection */
+  .select-none {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
