@@ -1,0 +1,59 @@
+<svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .muscle-path {
+        transition: fill 300ms ease;
+        cursor: pointer;
+      }
+      .muscle-path:hover {
+        opacity: 0.8;
+      }
+    </style>
+  </defs>
+
+  <!-- Shoulders / Delts -->
+  <path id="muscle-shoulders" class="muscle-path"
+    d="M45,65 Q60,60 70,70 L70,85 Q60,90 50,85 Q40,80 45,65 Z" />
+  <path class="muscle-path"
+    d="M130,70 Q140,60 155,65 Q160,80 150,85 Q140,90 130,85 Z" />
+
+  <!-- Chest -->
+  <path id="muscle-chest" class="muscle-path"
+    d="M70,70 Q100,65 130,70 L125,110 Q100,115 75,110 Z" />
+
+  <!-- Biceps -->
+  <path id="muscle-biceps" class="muscle-path"
+    d="M40,85 Q55,90 60,110 L55,140 Q45,135 40,110 Q38,95 40,85 Z" />
+  <path class="muscle-path"
+    d="M140,110 Q145,90 160,85 Q162,95 160,110 Q155,135 145,140 L140,110 Z" />
+
+  <!-- Forearms -->
+  <path id="muscle-forearms" class="muscle-path"
+    d="M35,140 Q45,145 50,170 L45,200 Q35,195 32,165 Q30,150 35,140 Z" />
+  <path class="muscle-path"
+    d="M150,170 Q155,145 165,140 Q170,150 168,165 Q165,195 155,200 L150,170 Z" />
+
+  <!-- Abs -->
+  <path id="muscle-abs" class="muscle-path"
+    d="M80,115 Q100,110 120,115 L115,155 Q100,160 85,155 Z" />
+  <path class="muscle-path"
+    d="M82,160 Q100,155 118,160 L115,195 Q100,200 85,195 Z" />
+
+  <!-- Obliques -->
+  <path id="muscle-obliques" class="muscle-path"
+    d="M75,115 L65,130 L70,160 Q80,155 82,150 L78,115 Z" />
+  <path class="muscle-path"
+    d="M118,150 L125,115 L135,130 L130,160 Q120,155 118,150 Z" />
+
+  <!-- Quads -->
+  <path id="muscle-quads" class="muscle-path"
+    d="M60,200 Q80,195 90,210 L88,280 Q75,285 65,275 Q55,240 60,200 Z" />
+  <path class="muscle-path"
+    d="M110,210 Q120,195 140,200 Q145,240 135,275 Q125,285 112,280 L110,210 Z" />
+
+  <!-- Calves -->
+  <path id="muscle-calves" class="muscle-path"
+    d="M70,290 Q80,285 85,300 L82,360 Q75,365 70,360 Q65,325 70,290 Z" />
+  <path class="muscle-path"
+    d="M115,300 Q120,285 130,290 Q135,325 130,360 Q125,365 118,360 L115,300 Z" />
+</svg>

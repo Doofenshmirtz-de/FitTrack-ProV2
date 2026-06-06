@@ -1,0 +1,57 @@
+<svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .muscle-path {
+        transition: fill 300ms ease;
+        cursor: pointer;
+      }
+      .muscle-path:hover {
+        opacity: 0.8;
+      }
+    </style>
+  </defs>
+
+  <!-- Upper Back -->
+  <path id="muscle-upper_back" class="muscle-path"
+    d="M70,70 Q100,65 130,70 L125,100 Q100,105 75,100 Z" />
+
+  <!-- Lats -->
+  <path id="muscle-lats" class="muscle-path"
+    d="M60,100 Q75,105 80,130 L75,180 Q65,175 60,150 Q55,120 60,100 Z" />
+  <path class="muscle-path"
+    d="M120,130 Q125,105 140,100 Q145,120 140,150 Q135,175 125,180 L120,130 Z" />
+
+  <!-- Lower Back -->
+  <path id="muscle-lower_back" class="muscle-path"
+    d="M85,105 Q100,110 115,105 L112,150 Q100,155 88,150 Z" />
+
+  <!-- Rear Delts -->
+  <path class="muscle-path"
+    d="M45,70 Q60,65 70,75 L65,95 Q50,90 48,80 Q45,75 45,70 Z" />
+  <path class="muscle-path"
+    d="M130,75 Q140,65 155,70 Q155,75 152,80 Q150,90 135,95 L130,75 Z" />
+
+  <!-- Triceps -->
+  <path id="muscle-triceps" class="muscle-path"
+    d="M40,95 Q55,100 60,120 L55,155 Q45,150 40,125 Q38,110 40,95 Z" />
+  <path class="muscle-path"
+    d="M140,120 Q145,100 160,95 Q162,110 160,125 Q155,150 145,155 L140,120 Z" />
+
+  <!-- Glutes -->
+  <path id="muscle-glutes" class="muscle-path"
+    d="M65,180 Q85,175 95,195 L90,220 Q75,225 65,215 Q60,200 65,180 Z" />
+  <path class="muscle-path"
+    d="M105,195 Q115,175 135,180 Q140,200 135,215 Q125,225 110,220 L105,195 Z" />
+
+  <!-- Hamstrings -->
+  <path id="muscle-hamstrings" class="muscle-path"
+    d="M65,220 Q80,215 90,235 L88,290 Q75,295 65,285 Q60,260 65,220 Z" />
+  <path class="muscle-path"
+    d="M110,235 Q120,215 135,220 Q140,260 135,285 Q125,295 112,290 L110,235 Z" />
+
+  <!-- Calves -->
+  <path id="muscle-calves-back" class="muscle-path"
+    d="M70,300 Q80,295 85,310 L82,365 Q75,370 70,365 Q65,335 70,300 Z" />
+  <path class="muscle-path"
+    d="M115,310 Q120,295 130,300 Q135,335 130,365 Q125,370 118,365 L115,310 Z" />
+</svg>
