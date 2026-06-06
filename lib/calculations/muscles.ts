@@ -9,6 +9,117 @@ export type MuscleStatus =
   | 'fresh'           // 3-5 days or recovery week
   | 'neglected'       // >7 days without recovery week
 
+export type MuscleGroup = 
+  | 'chest'
+  | 'shoulders'
+  | 'biceps'
+  | 'triceps'
+  | 'forearms'
+  | 'abs'
+  | 'obliques'
+  | 'upper_back'
+  | 'lower_back'
+  | 'lats'
+  | 'glutes'
+  | 'quads'
+  | 'hamstrings'
+  | 'calves'
+
+// All muscle groups for iteration
+export const MUSCLE_GROUPS: MuscleGroup[] = [
+  'chest',
+  'shoulders', 
+  'biceps',
+  'triceps',
+  'forearms',
+  'abs',
+  'obliques',
+  'upper_back',
+  'lower_back',
+  'lats',
+  'glutes',
+  'quads',
+  'hamstrings',
+  'calves',
+]
+
+// German display names for muscles
+const MUSCLE_DISPLAY_NAMES_DE: Record<MuscleGroup, string> = {
+  'chest': 'Brust',
+  'shoulders': 'Schultern',
+  'biceps': 'Bizeps',
+  'triceps': 'Trizeps',
+  'forearms': 'Unterarme',
+  'abs': 'Bauch',
+  'obliques': 'Schräge Bauchmuskeln',
+  'upper_back': 'Oberer Rücken',
+  'lower_back': 'Unterer Rücken',
+  'lats': 'Latissimus',
+  'glutes': 'Gesäß',
+  'quads': 'Quadrizeps',
+  'hamstrings': 'Hamstrings',
+  'calves': 'Waden',
+}
+
+// English display names for muscles
+const MUSCLE_DISPLAY_NAMES_EN: Record<MuscleGroup, string> = {
+  'chest': 'Chest',
+  'shoulders': 'Shoulders',
+  'biceps': 'Biceps',
+  'triceps': 'Triceps',
+  'forearms': 'Forearms',
+  'abs': 'Abs',
+  'obliques': 'Obliques',
+  'upper_back': 'Upper Back',
+  'lower_back': 'Lower Back',
+  'lats': 'Lats',
+  'glutes': 'Glutes',
+  'quads': 'Quads',
+  'hamstrings': 'Hamstrings',
+  'calves': 'Calves',
+}
+
+/**
+ * Get display name for a muscle group
+ * @param muscle - The muscle group
+ * @param locale - Language locale (default: 'de')
+ * @returns Display name for the muscle
+ */
+export function getMuscleDisplayName(muscle: MuscleGroup, locale: 'de' | 'en' = 'de'): string {
+  return locale === 'de' 
+    ? MUSCLE_DISPLAY_NAMES_DE[muscle] 
+    : MUSCLE_DISPLAY_NAMES_EN[muscle]
+}
+
+// Status descriptions
+const STATUS_DESCRIPTIONS_DE: Record<MuscleStatus, string> = {
+  'trained_heavy': 'Heute intensiv trainiert',
+  'trained_light': 'Kürzlich leicht trainiert',
+  'recovering': 'Erholungsphase nach intensivem Training',
+  'fresh': 'Bereit für Training',
+  'neglected': 'Lange nicht trainiert',
+}
+
+const STATUS_DESCRIPTIONS_EN: Record<MuscleStatus, string> = {
+  'trained_heavy': 'Trained heavy today',
+  'trained_light': 'Recently trained light',
+  'recovering': 'Recovering from intense training',
+  'fresh': 'Ready for training',
+  'neglected': 'Not trained for a while',
+}
+
+/**
+ * Get description for muscle status
+ * @param status - The muscle status
+ * @param locale - Language locale (default: 'de')
+ * @returns Description text for the status
+ */
+export function getMuscleStatusDescription(status: MuscleStatus, locale: 'de' | 'en' = 'de'): string {
+  return locale === 'de'
+    ? STATUS_DESCRIPTIONS_DE[status]
+    : STATUS_DESCRIPTIONS_EN[status]
+}
+
 /**
  * Get muscle status based on last trained date and volume
  * 
