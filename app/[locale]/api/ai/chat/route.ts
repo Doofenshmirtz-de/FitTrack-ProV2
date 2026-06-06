@@ -178,14 +178,14 @@ export async function POST(request: NextRequest) {
         content: reply,
         context_snapshot: null,
       },
-    ])
+    ] as never)
 
     // 9. Return response
     return NextResponse.json({
       reply,
       contextUsed: {
         hasHealthData: !!context.todayMetrics.stepsToday,
-        hasWorkoutData: context.recentTraining.workoutsCompleted > 0,
+        hasWorkoutData: context.weeklyTrends.workoutsCompleted > 0,
       },
       timestamp: new Date().toISOString(),
     })

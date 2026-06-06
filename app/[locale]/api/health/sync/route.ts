@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         spo2_avg: data.spo2 ?? null,
         weight_kg: data.weight ?? null,
         updated_at: new Date().toISOString(),
-      }, {
+      } as never, {
         onConflict: 'user_id,date',
         ignoreDuplicates: false, // Update on conflict
       })
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
         metric_type: 'daily_snapshot',
         value: JSON.stringify(data),
         source: 'health_connect',
-      })
+      } as never)
 
     if (rawError) {
       // Log but don't fail - raw data is for audit only
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
       .update({
         health_connect_last_sync: new Date().toISOString(),
         health_connect_enabled: true,
-      })
+      } as never)
       .eq('id', user.id)
 
     // 7. Broadcast Realtime event
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
       success: true,
       synced: {
         date: data.date,
-        summaryId: summaryResult?.id,
+        summaryId: (summaryResult as { id?: string } | null)?.id,
         metrics: {
           steps: data.steps,
           calories: data.caloriesBurned,

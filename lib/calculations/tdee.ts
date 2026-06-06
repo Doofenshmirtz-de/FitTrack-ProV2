@@ -16,7 +16,7 @@ export interface UserProfile {
  */
 export function calculateTDEE(
   profile: UserProfile,
-  healthDaily: Pick<DailySummary, 'activeMinutes' | 'calories_burned'>
+  healthDaily: Pick<DailySummary, 'active_minutes' | 'calories_burned'>
 ): number {
   // Mifflin-St. Jeor BMR mit dynamischem Geschlecht
   const sexModifier = profile.sex === 'female' ? -161 :
@@ -29,13 +29,13 @@ export function calculateTDEE(
 
   // Aktivitätsfaktor aus Health Connect Active Minutes
   const activityMultiplier =
-    (healthDaily.activeMinutes ?? 0) < 30  ? 1.2  :
-    (healthDaily.activeMinutes ?? 0) < 60  ? 1.375 :
-    (healthDaily.activeMinutes ?? 0) < 90  ? 1.55  :
-    (healthDaily.activeMinutes ?? 0) < 120 ? 1.725 : 1.9
+    (healthDaily.active_minutes ?? 0) < 30  ? 1.2  :
+    (healthDaily.active_minutes ?? 0) < 60  ? 1.375 :
+    (healthDaily.active_minutes ?? 0) < 90  ? 1.55  :
+    (healthDaily.active_minutes ?? 0) < 120 ? 1.725 : 1.9
 
   const totalBurned = healthDaily.calories_burned ?? 0
-  
+
   return Math.round(bmr * activityMultiplier + (totalBurned * 0.1))
 }
 

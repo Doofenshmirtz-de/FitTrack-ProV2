@@ -1,12 +1,12 @@
 import type { NextConfig } from "next";
-import withPWA from "next-pwa";
+import _withPWA from "next-pwa";
+const withPWA = _withPWA as (options: { dest: string; disable?: boolean; runtimeCaching?: unknown[] }) => (config: NextConfig) => NextConfig;
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const config: NextConfig = {
   reactStrictMode: true,
-  cacheComponents: true,
   images: {
     domains: ['*.supabase.co', 'world.openfoodfacts.org'],
     remotePatterns: [

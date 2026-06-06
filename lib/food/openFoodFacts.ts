@@ -103,7 +103,7 @@ export function mapOFFToFoodLog(product: OFFProduct, quantity_g: number = 100) {
     food_name: product.product_name || product.product_name_de || "Unbekanntes Produkt",
     brand_name: product.brands || null,
     barcode: product.code,
-    openfoodfacts_id: product._id || product.id,
+    openfoodfacts_id: product._id || product.id || product.code || "",
     quantity_g: quantity_g,
     calories: Math.round(calories * 10) / 10,
     protein_g: Math.round((n["proteins_100g"] || 0) * ratio * 10) / 10,

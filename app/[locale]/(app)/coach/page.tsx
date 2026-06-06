@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Send, Sparkles, Loader2, Calendar, Dumbbell, Utensils, Moon, Activity } from "lucide-react"
@@ -39,18 +39,6 @@ export default function CoachPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
-
-  // Check URL params for context (e.g., from muscle map)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const muscle = params.get("muscle")
-    if (muscle) {
-      const message = `Ich habe meine ${muscle} Muskeln vernachlässigt. Was sollte ich trainieren?`
-      setInput(message)
-      // Auto-send after a delay
-      setTimeout(() => handleSend(message), 500)
-    }
-  }, [])
 
   const handleSend = async (messageText?: string) => {
     const text = messageText || input

@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
-import { BrowserMultiFormatReader, type Result } from "@zxing/browser"
+import { BrowserMultiFormatReader } from "@zxing/browser"
+import type { Result } from "@zxing/library"
 import { X, ScanLine } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils/cn"
@@ -21,7 +22,7 @@ export function BarcodeScanner({ onScan, onClose, className }: BarcodeScannerPro
 
   const stopScanning = useCallback(() => {
     if (readerRef.current) {
-      readerRef.current.reset()
+      (readerRef.current as any).reset?.()
       readerRef.current = null
     }
     setIsScanning(false)

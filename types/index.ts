@@ -323,9 +323,14 @@ export interface FoodVisionResult {
 // ============================================================
 export interface OFFProduct {
   code: string;
-  product_name: string;
+  product_name?: string;
+  product_name_de?: string;
   brands: string | null;
   _id: string;
+  id?: string;
+  image_url?: string;
+  image_front_small_url?: string;
+  image_front_url?: string;
   nutriments: {
     'energy-kcal_100g'?: number;
     'energy_100g'?: number;
@@ -355,4 +360,9 @@ export interface PendingOperation {
 export interface RecoveryScoreResult {
   score: number;
   isEstimated: boolean;
+}
+
+export interface WeeklyAvg {
+  avgSleepScore?: number | null;
+  avgHrv?: number | null;
 }

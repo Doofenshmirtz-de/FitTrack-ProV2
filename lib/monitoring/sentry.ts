@@ -10,7 +10,7 @@ export function initSentry() {
     tracesSampleRate: 0.1,
     
     // Setting this option to true will print useful information to the console
-    debug: process.env.NODE_ENV === 'development',
+    debug: false,
     
     replaysOnErrorSampleRate: 1.0,
     

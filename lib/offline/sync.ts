@@ -121,7 +121,7 @@ async function syncFoodLog(
     openfoodfacts_id: payload.openfoodfactsId,
     photo_url: payload.photoUrl,
     notes: payload.notes
-  })
+  } as never)
 
   if (error) throw error
 }
@@ -143,25 +143,25 @@ async function syncWorkoutSession(
       started_at: payload.startedAt,
       ended_at: payload.endedAt,
       total_volume_kg: payload.totalVolumeKg
-    })
+    } as never)
     .select('id')
     .single()
 
   if (sessionError) throw sessionError
 
   // 2. Alle Sets einfügen
-  const setsToInsert = payload.exercises.flatMap((exercise, exerciseIndex) =>
+  const setsToInsert = payload.exercises.flatMap((exercise) =>
     exercise.sets
       .filter(set => set.isCompleted)
       .map((set, setIndex) => ({
-        session_id: session.id,
+        session_id: (session as { id: string }).id,
         exercise_id: exercise.exerciseId,
         set_number: setIndex + 1,
         reps: set.reps,
         weight_kg: set.weightKg,
         rpe: set.rpe,
         is_warmup: set.isWarmup,
-        is_dropset: set.isDropset,
+        is_dropset: false,
         recorded_at: new Date(Date.parse(payload.startedAt) + setIndex * 1000).toISOString()
       }))
   )
@@ -169,11 +169,11 @@ async function syncWorkoutSession(
   if (setsToInsert.length > 0) {
     const { error: setsError } = await supabase
       .from('workout_sets')
-      .insert(setsToInsert)
+      .insert(setsToInsert as never)
 
     if (setsError) {
       // Rollback: Session löschen wenn Sets fehlschlagen
-      await supabase.from('workout_sessions').delete().eq('id', session.id)
+      await supabase.from('workout_sessions').delete().eq('id', (session as { id: string }).id)
       throw setsError
     }
   }

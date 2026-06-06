@@ -20,10 +20,13 @@ const jetbrainsMono = JetBrains_Mono({
 export async function generateMetadata({
   params
 }: {
-  params: Promise<{ locale: Locale }>
+  params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  const messages = await getMessages({ locale })
+  if (!locales.includes(locale as Locale)) {
+    notFound()
+  }
+  const messages = await getMessages({ locale: locale as Locale })
 
   return {
     title: messages.metadata.title as string,
@@ -36,20 +39,21 @@ export default async function LocaleLayout({
   params
 }: {
   children: React.ReactNode
-  params: Promise<{ locale: Locale }>
+  params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
   // Validate locale
-  if (!locales.includes(locale)) {
+  if (!locales.includes(locale as Locale)) {
     notFound()
   }
 
-  const messages = await getMessages({ locale })
+  const typedLocale = locale as Locale
+  const messages = await getMessages({ locale: typedLocale })
 
   return (
-    <html lang={locale} className="dark" suppressHydrationWarning>
+    <html lang={typedLocale} className="dark" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrainsMono.variable} bg-background text-foreground antialiased min-h-screen font-sans`}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
+        <NextIntlClientProvider locale={typedLocale} messages={messages}>
           <MonitoringProvider>
             {children}
           </MonitoringProvider>

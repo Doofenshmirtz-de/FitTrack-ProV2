@@ -77,8 +77,10 @@ async function fetchTodayFoodLogs(): Promise<{ calories: number; protein: number
     throw error
   }
   
-  return data.reduce(
-    (acc, log) => ({
+  const typedData = data as Array<{ calories?: number; protein_g?: number; carbs_g?: number; fat_g?: number }> | null
+
+  return (typedData || []).reduce(
+    (acc: { calories: number; protein: number; carbs: number; fat: number }, log) => ({
       calories: acc.calories + (log.calories || 0),
       protein: acc.protein + (log.protein_g || 0),
       carbs: acc.carbs + (log.carbs_g || 0),
@@ -110,14 +112,16 @@ async function fetchWeeklyAverages(): Promise<{
     .gte("date", sevenDaysAgo.toISOString().split("T")[0])
     .not("hrv_rmssd", "is", null)
     .not("sleep_score", "is", null)
-  
-  if (error || !data || data.length === 0) {
+
+  const typedData = data as Array<{ hrv_rmssd?: number | null; sleep_score?: number | null }> | null
+
+  if (error || !typedData || typedData.length === 0) {
     return { avgHrv: 0, avgSleepScore: 50 }
   }
-  
-  const validHrv = data.filter(d => d.hrv_rmssd !== null)
-  const validSleep = data.filter(d => d.sleep_score !== null)
-  
+
+  const validHrv = typedData.filter(d => d.hrv_rmssd !== null)
+  const validSleep = typedData.filter(d => d.sleep_score !== null)
+
   return {
     avgHrv: validHrv.length > 0
       ? validHrv.reduce((sum, d) => sum + (d.hrv_rmssd || 0), 0) / validHrv.length
@@ -188,8 +192,8 @@ export function useDashboardData() {
             : 30,
         },
         {
-          activeMinutes: summaryQuery.data.active_minutes || 0,
-          caloriesBurned: summaryQuery.data.calories_burned || 0,
+          active_minutes: summaryQuery.data.active_minutes || 0,
+          calories_burned: summaryQuery.data.calories_burned || 0,
         }
       )
     : 2500 // Default fallback

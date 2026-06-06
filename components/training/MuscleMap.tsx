@@ -178,7 +178,7 @@ export function MuscleMap({
               </p>
             </div>
             <button
-              onClick={() => onMuscleLongPress?.(selectedMuscle)}
+              onClick={() => selectedMuscle && onMuscleLongPress?.(selectedMuscle)}
               className="p-2 bg-accent-purple/10 rounded-lg text-accent-purple hover:bg-accent-purple/20 transition-colors"
               title="AI Coach fragen"
             >

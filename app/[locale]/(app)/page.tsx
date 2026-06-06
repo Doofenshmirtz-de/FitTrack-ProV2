@@ -97,7 +97,7 @@ export default function DashboardPage() {
       ) : (
         <SleepWidget
           totalMinutes={summary?.sleep_minutes_total || 0}
-          score={summary?.sleep_score}
+          score={summary?.sleep_score ?? null}
           stages={
             summary?.sleep_minutes_total
               ? {

@@ -8,7 +8,7 @@ import { useSupabaseUser } from '@/hooks/useSupabaseUser'
 export function MonitoringProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const user = useSupabaseUser()
+  const { user } = useSupabaseUser()
 
   // Initialize monitoring on mount
   useEffect(() => {

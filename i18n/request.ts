@@ -4,9 +4,11 @@ import { locales, type Locale } from './index'
 
 export default getRequestConfig(async ({ locale }) => {
   // Validate that the incoming `locale` parameter is valid
-  if (!locales.includes(locale as Locale)) notFound()
+  const typedLocale = locale as Locale
+  if (!locales.includes(typedLocale)) notFound()
 
   return {
-    messages: (await import(`../messages/${locale}.json`)).default
+    locale: typedLocale,
+    messages: (await import(`../messages/${typedLocale}.json`)).default
   }
 })

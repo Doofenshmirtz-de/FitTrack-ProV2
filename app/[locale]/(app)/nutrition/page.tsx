@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Suspense, lazy } from "react"
 import { Plus, Barcode, Search, Camera, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarcodeScanner } from "@/components/nutrition/BarcodeScanner"
 import { FoodSearch } from "@/components/nutrition/FoodSearch"
 import { FoodEntryForm } from "@/components/nutrition/FoodEntryForm"
 import type { OFFProduct } from "@/types"
+
+// Dynamically import BarcodeScanner to avoid prerendering issues
+const BarcodeScanner = lazy(() => import("@/components/nutrition/BarcodeScanner").then(mod => ({ default: mod.BarcodeScanner })))
 
 export default function NutritionPage() {
   const [showScanner, setShowScanner] = useState(false)
@@ -172,10 +174,12 @@ export default function NutritionPage() {
 
       {/* Barcode Scanner */}
       {showScanner && (
-        <BarcodeScanner
-          onScan={handleBarcodeScan}
-          onClose={() => setShowScanner(false)}
-        />
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black flex items-center justify-center text-white">Kamera wird initialisiert...</div>}>
+          <BarcodeScanner
+            onScan={handleBarcodeScan}
+            onClose={() => setShowScanner(false)}
+          />
+        </Suspense>
       )}
 
       {/* Food Search */}
@@ -188,7 +192,9 @@ export default function NutritionPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <FoodSearch onSelect={handleProductSelect} />
+            <Suspense fallback={<div className="text-center py-8 text-foreground-secondary">Suche wird geladen...</div>}>
+              <FoodSearch onSelect={handleProductSelect} />
+            </Suspense>
           </CardContent>
         </Card>
       )}

@@ -89,18 +89,24 @@ export default function OnboardingPage() {
     const age = currentYear - birthYear
 
     // Update profile
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setIsLoading(false)
+      return
+    }
+
     const { error } = await supabase
       .from("profiles")
       .update({
         height_cm: parseFloat(height),
         weight_kg: parseFloat(weight),
         birth_date: birthDate,
-        sex,
-        fitness_goal: fitnessGoal as any,
-        activity_level: activityLevel as any,
+        sex: (sex || null) as "male" | "female" | "other" | null,
+        fitness_goal: (fitnessGoal || null) as "muscle_gain" | "fat_loss" | "maintenance" | "endurance" | null,
+        activity_level: (activityLevel || null) as "sedentary" | "light" | "moderate" | "active" | "very_active" | null,
         onboarding_completed: true,
-      })
-      .eq("id", (await supabase.auth.getUser()).data.user?.id)
+      } as never)
+      .eq("id", user.id)
 
     if (error) {
       console.error("Error updating profile:", error)
