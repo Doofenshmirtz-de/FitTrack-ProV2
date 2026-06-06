@@ -3,17 +3,20 @@ import { createClient } from "@/lib/supabase/server"
 import { BottomNav } from "@/components/shared/BottomNav"
 import { QuickAddFAB } from "@/components/shared/QuickAddFAB"
 import { OfflineBanner } from "@/components/shared/OfflineBanner"
+import type { Locale } from "@/i18n"
 
 export default async function AppLayout({
   children,
+  params: { locale }
 }: {
   children: React.ReactNode
+  params: { locale: Locale }
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
-    redirect("/login")
+    redirect(`/${locale}/login`)
   }
 
   return (

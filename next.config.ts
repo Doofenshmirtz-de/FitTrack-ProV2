@@ -1,11 +1,11 @@
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin();
 
 const config: NextConfig = {
   reactStrictMode: true,
-  experimental: {
-    ppr: true,
-  },
   images: {
     domains: ['*.supabase.co', 'world.openfoodfacts.org'],
     remotePatterns: [
@@ -27,6 +27,32 @@ const config: NextConfig = {
           { key: 'Access-Control-Allow-Origin', value: '*' },
           { key: 'Access-Control-Allow-Methods', value: 'POST, OPTIONS' },
           { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
+        ],
+      },
+      // CSP Headers for all routes
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.supabase.co https://world.openfoodfacts.org data: blob:; connect-src 'self' https://*.supabase.co https://world.openfoodfacts.org https://generativelanguage.googleapis.com; font-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(self), microphone=(self)'
+          }
         ],
       },
     ];
@@ -55,4 +81,7 @@ const withPWAConfig = withPWA({
   ],
 });
 
-export default withPWAConfig(config);
+// Combine plugins: next-intl -> pwa
+const withPlugins = withNextIntl(withPWAConfig(config));
+
+export default withPlugins;

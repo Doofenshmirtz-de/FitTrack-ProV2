@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { addToQueue } from '@/lib/offline/offlineQueue'
+import { setupOnlineSync } from '@/lib/offline/sync'
 
 export type WorkoutStatus = 'IDLE' | 'ACTIVE' | 'RESTING' | 'COMPLETING'
 
@@ -30,6 +32,7 @@ interface WorkoutState {
   programId?: string
   programDayId?: string
   workoutName: string
+  rpeOverall?: number
 
   // Actions
   startWorkout: (params?: { programId?: string; programDayId?: string; name?: string }) => void
@@ -42,6 +45,9 @@ interface WorkoutState {
   deleteSet: (exerciseIndex: number, setId: string) => void
   updateSet: (exerciseIndex: number, setId: string, updates: Partial<ExerciseSet>) => void
   reorderExercises: (fromIndex: number, toIndex: number) => void
+  setRpeOverall: (rpe: number) => void
+  finalizeWorkout: (userId: string) => Promise<{ success: boolean; queued: boolean; error?: string }>
+  getTotalVolume: () => number
 }
 
 const initialState = {
@@ -191,6 +197,91 @@ export const useWorkoutStore = create<WorkoutState>()(
         updatedExercises.splice(toIndex, 0, moved)
 
         set({ exercises: updatedExercises })
+      },
+
+      setRpeOverall: (rpe) => {
+        set({ rpeOverall: rpe })
+      },
+
+      getTotalVolume: () => {
+        const { exercises } = get()
+        return exercises.reduce((total, exercise) => {
+          return total + exercise.sets.reduce((setTotal, set) => {
+            return set.isCompleted && !set.isWarmup 
+              ? setTotal + (set.weightKg * set.reps)
+              : setTotal
+          }, 0)
+        }, 0)
+      },
+
+      finalizeWorkout: async (userId: string) => {
+        const state = get()
+        
+        if (!state.sessionId || !state.startedAt) {
+          return { success: false, queued: false, error: 'No active workout' }
+        }
+
+        const totalVolume = get().getTotalVolume()
+        const endedAt = Date.now()
+
+        const workoutPayload = {
+          sessionId: state.sessionId,
+          userId,
+          programId: state.programId,
+          programDayId: state.programDayId,
+          name: state.workoutName,
+          startedAt: new Date(state.startedAt).toISOString(),
+          endedAt: new Date(endedAt).toISOString(),
+          exercises: state.exercises,
+          totalVolumeKg: totalVolume,
+          rpeOverall: state.rpeOverall
+        }
+
+        try {
+          // Prüfen ob online
+          const isOnline = typeof navigator !== 'undefined' && navigator.onLine
+
+          if (!isOnline) {
+            // Offline: zur Queue hinzufügen
+            await addToQueue('workout_complete', workoutPayload)
+            set({ ...initialState, status: 'IDLE' })
+            return { success: true, queued: true }
+          }
+
+          // Online: direkt sync versuchen
+          try {
+            const { flushOfflineQueue } = await import('@/lib/offline/sync')
+            await flushOfflineQueue()
+            
+            // Nach dem Flush prüfen ob noch pending
+            const { getQueueStats } = await import('@/lib/offline/offlineQueue')
+            const stats = await getQueueStats()
+            
+            if (stats.pending === 0) {
+              set({ ...initialState, status: 'IDLE' })
+              return { success: true, queued: false }
+            }
+          } catch {
+            // Sync fehlgeschlagen, zur Queue hinzufügen
+            await addToQueue('workout_complete', workoutPayload)
+            set({ ...initialState, status: 'IDLE' })
+            return { success: true, queued: true }
+          }
+
+          set({ ...initialState, status: 'IDLE' })
+          return { success: true, queued: false }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+          
+          // Bei Fehler zur Queue hinzufügen für späteren Retry
+          try {
+            await addToQueue('workout_complete', workoutPayload)
+            set({ ...initialState, status: 'IDLE' })
+            return { success: true, queued: true }
+          } catch {
+            return { success: false, queued: false, error: errorMessage }
+          }
+        }
       }
     }),
     {
@@ -204,7 +295,20 @@ export const useWorkoutStore = create<WorkoutState>()(
         programId: state.programId,
         programDayId: state.programDayId,
         workoutName: state.workoutName,
+        rpeOverall: state.rpeOverall,
       }),
+      onRehydrateStorage: () => {
+        // Setup online sync listener beim Rehydrate
+        if (typeof window !== 'undefined') {
+          setupOnlineSync()
+        }
+        return (state) => {
+          // Nach Rehydrate: Prüfen ob unvollständiges Workout existiert
+          if (state?.status === 'ACTIVE' || state?.status === 'RESTING') {
+            console.log('[WorkoutStore] Unfinished workout detected:', state.sessionId)
+          }
+        }
+      }
     }
   )
 )

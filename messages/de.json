@@ -1,0 +1,266 @@
+{
+  "metadata": {
+    "title": "FitTrack Pro",
+    "description": "Dein persönlicher Health Companion - Track Training, Ernährung und Gesundheit"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "nutrition": "Ernährung",
+    "training": "Training",
+    "coach": "Coach",
+    "profile": "Profil"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "recovery": {
+      "title": "Recovery",
+      "subtitle": "Bereitschaft",
+      "excellent": "Ausgezeichnet",
+      "good": "Gut",
+      "moderate": "Mittel",
+      "poor": "Niedrig"
+    },
+    "strain": {
+      "title": "Strain",
+      "subtitle": "Belastung",
+      "light": "Leicht",
+      "moderate": "Mittel",
+      "high": "Hoch",
+      "extreme": "Extrem"
+    },
+    "calories": {
+      "title": "Kalorien",
+      "consumed": "Aufgenommen",
+      "burned": "Verbraucht",
+      "target": "Ziel",
+      "remaining": "Verbleibend"
+    },
+    "steps": {
+      "title": "Schritte",
+      "goal": "Ziel",
+      "today": "Heute"
+    },
+    "sleep": {
+      "title": "Schlaf",
+      "duration": "Dauer",
+      "score": "Score",
+      "deep": "Tief",
+      "rem": "REM",
+      "light": "Leicht",
+      "awake": "Wach"
+    },
+    "heartRate": {
+      "title": "Herzfrequenz",
+      "resting": "Ruhe",
+      "average": "Durchschnitt",
+      "max": "Max"
+    },
+    "workouts": {
+      "title": "Trainings",
+      "lastWorkout": "Letztes Training",
+      "thisWeek": "Diese Woche",
+      "totalVolume": "Gesamtvolumen"
+    }
+  },
+  "nutrition": {
+    "title": "Ernährung",
+    "addMeal": "Mahlzeit hinzufügen",
+    "today": "Heute",
+    "macros": {
+      "protein": "Protein",
+      "carbs": "Kohlenhydrate",
+      "fat": "Fett",
+      "fiber": "Ballaststoffe"
+    },
+    "meals": {
+      "breakfast": "Frühstück",
+      "lunch": "Mittagessen",
+      "dinner": "Abendessen",
+      "snack": "Snack"
+    },
+    "scanner": {
+      "title": "Barcode-Scanner",
+      "instruction": "Barcode in den Rahmen halten",
+      "noCamera": "Keine Kamera verfügbar",
+      "permissionDenied": "Kamera-Zugriff verweigert"
+    },
+    "search": {
+      "placeholder": "Lebensmittel suchen...",
+      "noResults": "Keine Ergebnisse gefunden",
+      "scanBarcode": "Barcode scannen"
+    },
+    "entry": {
+      "quantity": "Menge (g)",
+      "calories": "Kalorien",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "aiEstimated": "KI-geschätzt"
+    }
+  },
+  "training": {
+    "title": "Training",
+    "startWorkout": "Workout starten",
+    "activeWorkout": "Aktives Workout",
+    "finishWorkout": "Workout beenden",
+    "cancelWorkout": "Abbrechen",
+    "resumeWorkout": "Workout fortsetzen",
+    "unfinishedWorkout": "Unvollständiges Workout gefunden",
+    "restTimer": {
+      "title": "Pause",
+      "skip": "Überspringen"
+    },
+    "exercise": {
+      "sets": "Sätze",
+      "reps": "Wdh",
+      "weight": "Gewicht",
+      "rpe": "RPE",
+      "previousBest": "PB",
+      "warmup": "Aufwärmen",
+      "dropset": "Dropset"
+    },
+    "muscleMap": {
+      "title": "Muskelkarte",
+      "status": {
+        "trained_heavy": "Heute trainiert",
+        "trained_light": "Kürzlich trainiert",
+        "recovering": "Erholung",
+        "fresh": "Frisch",
+        "neglected": "Vernachlässigt"
+      },
+      "muscles": {
+        "chest": "Brust",
+        "back": "Rücken",
+        "shoulders": "Schultern",
+        "biceps": "Bizeps",
+        "triceps": "Trizeps",
+        "abs": "Bauch",
+        "quads": "Quadrizeps",
+        "hamstrings": "Hamstrings",
+        "glutes": "Gesäß",
+        "calves": "Waden",
+        "traps": "Trapezen",
+        "lats": "Latissimus",
+        "forearms": "Unterarme",
+        "lower_back": "Unterer Rücken"
+      }
+    },
+    "programs": {
+      "title": "Programme",
+      "new": "Neues Programm",
+      "current": "Aktuelles Programm",
+      "templates": {
+        "ppl": "Push Pull Legs",
+        "upper_lower": "Upper Lower",
+        "full_body": "Full Body",
+        "hypertrophy": "Hypertrophie",
+        "strength": "Kraft"
+      }
+    }
+  },
+  "coach": {
+    "title": "AI Coach",
+    "placeholder": "Frage deinen Coach...",
+    "send": "Senden",
+    "contextChips": {
+      "today": "Heute",
+      "thisWeek": "Diese Woche",
+      "nutrition": "Ernährung",
+      "training": "Training",
+      "sleep": "Schlaf",
+      "muscleMap": "Muskelkarte"
+    },
+    "disclaimer": "Der AI Coach gibt Empfehlungen basierend auf deinen Daten. Ersetzt keine medizinische Beratung.",
+    "unavailable": "Der AI-Coach ist temporär nicht verfügbar. Bitte versuche es später erneut."
+  },
+  "profile": {
+    "title": "Profil",
+    "settings": "Einstellungen",
+    "language": "Sprache",
+    "german": "Deutsch",
+    "english": "Englisch",
+    "debug": {
+      "title": "Debug-Informationen",
+      "supabase": "Supabase Verbindung",
+      "healthConnect": "Health Connect",
+      "gemini": "Gemini API",
+      "reconnect": "Reconnect",
+      "connected": "Verbunden",
+      "disconnected": "Getrennt",
+      "queueStatus": "Queue-Status",
+      "pendingItems": "Ausstehende Items",
+      "failedItems": "Fehlgeschlagene Items",
+      "syncNow": "Jetzt synchronisieren",
+      "clearFailed": "Fehler löschen",
+      "serviceWorker": "Service Worker",
+      "errorLog": "Fehler-Log"
+    },
+    "data": {
+      "export": "Daten exportieren",
+      "exportDescription": "Exportiere alle deine Daten als JSON/CSV",
+      "delete": "Konto löschen",
+      "deleteWarning": "Dies löscht alle deine Daten unwiderruflich."
+    },
+    "logout": "Abmelden"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "forgotPassword": "Passwort vergessen?",
+    "noAccount": "Noch kein Konto?",
+    "hasAccount": "Bereits ein Konto?",
+    "continue": "Weiter",
+    "loginError": "Anmeldung fehlgeschlagen",
+    "registerError": "Registrierung fehlgeschlagen"
+  },
+  "onboarding": {
+    "title": "Willkommen bei FitTrack Pro",
+    "step1": {
+      "title": "Deine Daten",
+      "height": "Größe (cm)",
+      "weight": "Gewicht (kg)",
+      "birthDate": "Geburtsdatum",
+      "sex": "Geschlecht",
+      "male": "Männlich",
+      "female": "Weiblich",
+      "other": "Divers"
+    },
+    "step2": {
+      "title": "Dein Ziel",
+      "fitnessGoal": "Fitness-Ziel",
+      "muscle_gain": "Muskelaufbau",
+      "fat_loss": "Fettabbau",
+      "maintenance": "Gewicht halten",
+      "endurance": "Ausdauer",
+      "activityLevel": "Aktivitätslevel",
+      "sedentary": "Sitzend",
+      "light": "Leicht aktiv",
+      "moderate": "Mittel aktiv",
+      "active": "Aktiv",
+      "very_active": "Sehr aktiv"
+    },
+    "step3": {
+      "title": "Health Connect",
+      "description": "Verbinde Google Health Connect für automatischen Sync deiner Gesundheitsdaten.",
+      "connect": "Verbinden",
+      "skip": "Überspringen"
+    }
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "retry": "Wiederholen",
+    "offline": "Offline",
+    "online": "Online",
+    "syncing": "Synchronisiere..."
+  }
+}

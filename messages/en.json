@@ -1,0 +1,266 @@
+{
+  "metadata": {
+    "title": "FitTrack Pro",
+    "description": "Your personal health companion - Track training, nutrition and health"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "nutrition": "Nutrition",
+    "training": "Training",
+    "coach": "Coach",
+    "profile": "Profile"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "recovery": {
+      "title": "Recovery",
+      "subtitle": "Readiness",
+      "excellent": "Excellent",
+      "good": "Good",
+      "moderate": "Moderate",
+      "poor": "Low"
+    },
+    "strain": {
+      "title": "Strain",
+      "subtitle": "Load",
+      "light": "Light",
+      "moderate": "Moderate",
+      "high": "High",
+      "extreme": "Extreme"
+    },
+    "calories": {
+      "title": "Calories",
+      "consumed": "Consumed",
+      "burned": "Burned",
+      "target": "Target",
+      "remaining": "Remaining"
+    },
+    "steps": {
+      "title": "Steps",
+      "goal": "Goal",
+      "today": "Today"
+    },
+    "sleep": {
+      "title": "Sleep",
+      "duration": "Duration",
+      "score": "Score",
+      "deep": "Deep",
+      "rem": "REM",
+      "light": "Light",
+      "awake": "Awake"
+    },
+    "heartRate": {
+      "title": "Heart Rate",
+      "resting": "Resting",
+      "average": "Average",
+      "max": "Max"
+    },
+    "workouts": {
+      "title": "Workouts",
+      "lastWorkout": "Last Workout",
+      "thisWeek": "This Week",
+      "totalVolume": "Total Volume"
+    }
+  },
+  "nutrition": {
+    "title": "Nutrition",
+    "addMeal": "Add Meal",
+    "today": "Today",
+    "macros": {
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fat": "Fat",
+      "fiber": "Fiber"
+    },
+    "meals": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    },
+    "scanner": {
+      "title": "Barcode Scanner",
+      "instruction": "Hold barcode within frame",
+      "noCamera": "No camera available",
+      "permissionDenied": "Camera permission denied"
+    },
+    "search": {
+      "placeholder": "Search food...",
+      "noResults": "No results found",
+      "scanBarcode": "Scan barcode"
+    },
+    "entry": {
+      "quantity": "Quantity (g)",
+      "calories": "Calories",
+      "save": "Save",
+      "cancel": "Cancel",
+      "aiEstimated": "AI estimated"
+    }
+  },
+  "training": {
+    "title": "Training",
+    "startWorkout": "Start Workout",
+    "activeWorkout": "Active Workout",
+    "finishWorkout": "Finish Workout",
+    "cancelWorkout": "Cancel",
+    "resumeWorkout": "Resume Workout",
+    "unfinishedWorkout": "Unfinished workout found",
+    "restTimer": {
+      "title": "Rest",
+      "skip": "Skip"
+    },
+    "exercise": {
+      "sets": "Sets",
+      "reps": "Reps",
+      "weight": "Weight",
+      "rpe": "RPE",
+      "previousBest": "PB",
+      "warmup": "Warmup",
+      "dropset": "Dropset"
+    },
+    "muscleMap": {
+      "title": "Muscle Map",
+      "status": {
+        "trained_heavy": "Trained today",
+        "trained_light": "Recently trained",
+        "recovering": "Recovering",
+        "fresh": "Fresh",
+        "neglected": "Neglected"
+      },
+      "muscles": {
+        "chest": "Chest",
+        "back": "Back",
+        "shoulders": "Shoulders",
+        "biceps": "Biceps",
+        "triceps": "Triceps",
+        "abs": "Abs",
+        "quads": "Quads",
+        "hamstrings": "Hamstrings",
+        "glutes": "Glutes",
+        "calves": "Calves",
+        "traps": "Traps",
+        "lats": "Lats",
+        "forearms": "Forearms",
+        "lower_back": "Lower Back"
+      }
+    },
+    "programs": {
+      "title": "Programs",
+      "new": "New Program",
+      "current": "Current Program",
+      "templates": {
+        "ppl": "Push Pull Legs",
+        "upper_lower": "Upper Lower",
+        "full_body": "Full Body",
+        "hypertrophy": "Hypertrophy",
+        "strength": "Strength"
+      }
+    }
+  },
+  "coach": {
+    "title": "AI Coach",
+    "placeholder": "Ask your coach...",
+    "send": "Send",
+    "contextChips": {
+      "today": "Today",
+      "thisWeek": "This Week",
+      "nutrition": "Nutrition",
+      "training": "Training",
+      "sleep": "Sleep",
+      "muscleMap": "Muscle Map"
+    },
+    "disclaimer": "The AI Coach provides recommendations based on your data. Not a substitute for medical advice.",
+    "unavailable": "The AI Coach is temporarily unavailable. Please try again later."
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Settings",
+    "language": "Language",
+    "german": "German",
+    "english": "English",
+    "debug": {
+      "title": "Debug Information",
+      "supabase": "Supabase Connection",
+      "healthConnect": "Health Connect",
+      "gemini": "Gemini API",
+      "reconnect": "Reconnect",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "queueStatus": "Queue Status",
+      "pendingItems": "Pending Items",
+      "failedItems": "Failed Items",
+      "syncNow": "Sync Now",
+      "clearFailed": "Clear Failed",
+      "serviceWorker": "Service Worker",
+      "errorLog": "Error Log"
+    },
+    "data": {
+      "export": "Export Data",
+      "exportDescription": "Export all your data as JSON/CSV",
+      "delete": "Delete Account",
+      "deleteWarning": "This will permanently delete all your data."
+    },
+    "logout": "Sign Out"
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "No account?",
+    "hasAccount": "Already have an account?",
+    "continue": "Continue",
+    "loginError": "Sign in failed",
+    "registerError": "Sign up failed"
+  },
+  "onboarding": {
+    "title": "Welcome to FitTrack Pro",
+    "step1": {
+      "title": "Your Data",
+      "height": "Height (cm)",
+      "weight": "Weight (kg)",
+      "birthDate": "Birth Date",
+      "sex": "Sex",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "step2": {
+      "title": "Your Goal",
+      "fitnessGoal": "Fitness Goal",
+      "muscle_gain": "Muscle Gain",
+      "fat_loss": "Fat Loss",
+      "maintenance": "Maintenance",
+      "endurance": "Endurance",
+      "activityLevel": "Activity Level",
+      "sedentary": "Sedentary",
+      "light": "Lightly Active",
+      "moderate": "Moderately Active",
+      "active": "Active",
+      "very_active": "Very Active"
+    },
+    "step3": {
+      "title": "Health Connect",
+      "description": "Connect Google Health Connect for automatic sync of your health data.",
+      "connect": "Connect",
+      "skip": "Skip"
+    }
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "retry": "Retry",
+    "offline": "Offline",
+    "online": "Online",
+    "syncing": "Syncing..."
+  }
+}

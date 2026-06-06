@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { rateLimiter } from '@/lib/rate-limit'
+import { locales, defaultLocale } from '@/i18n'
 
 // Rate limit exempt paths
 const RATE_LIMIT_EXEMPT = [
@@ -11,7 +12,55 @@ const RATE_LIMIT_EXEMPT = [
   '/manifest',
 ]
 
+function getLocale(request: NextRequest): string {
+  // Check for locale cookie first
+  const localeCookie = request.cookies.get('NEXT_LOCALE')?.value
+  if (localeCookie && locales.includes(localeCookie as typeof locales[number])) {
+    return localeCookie
+  }
+
+  // Check Accept-Language header
+  const acceptLanguage = request.headers.get('accept-language')
+  if (acceptLanguage) {
+    const preferred = acceptLanguage.split(',')[0].split('-')[0]
+    if (locales.includes(preferred as typeof locales[number])) {
+      return preferred
+    }
+  }
+
+  return defaultLocale
+}
+
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+
+  // Check if pathname is missing locale
+  const pathnameIsMissingLocale = locales.every(
+    locale => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
+  )
+
+  // Handle locale redirect
+  if (pathnameIsMissingLocale) {
+    const locale = getLocale(request)
+    
+    // Skip API routes, static files, and Next.js internals
+    if (
+      pathname.startsWith('/api/') ||
+      pathname.startsWith('/_next/') ||
+      pathname.includes('.') ||
+      pathname.startsWith('/icons/') ||
+      pathname.startsWith('/manifest') ||
+      pathname.startsWith('/screenshots/')
+    ) {
+      // Continue with session/rate limiting for API routes
+    } else {
+      // Redirect to locale-prefixed path
+      return NextResponse.redirect(
+        new URL(`/${locale}${pathname === '/' ? '' : pathname}`, request.url)
+      )
+    }
+  }
+
   // First, update Supabase session
   const response = await updateSession(request)
 
@@ -34,12 +83,6 @@ export async function middleware(request: NextRequest) {
         }
       })
     }
-  }
-
-  // Auth redirect for protected routes
-  if (path.startsWith('/(app)')) {
-    // Protected routes - handled by layout
-    // Session check is done in updateSession
   }
 
   return response

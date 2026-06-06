@@ -3,7 +3,7 @@ import "./globals.css"
 
 export const metadata: Metadata = {
   title: "FitTrack Pro",
-  description: "Dein persönlicher Health Companion",
+  description: "Your personal health companion - Track training, nutrition and health",
   manifest: "/manifest.json",
   themeColor: "#0a0a0a",
   appleWebApp: {
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="de" className="dark" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <body className="bg-background text-foreground antialiased min-h-screen">
         {children}
       </body>
