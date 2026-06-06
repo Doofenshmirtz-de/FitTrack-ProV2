@@ -18,10 +18,11 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export async function generateMetadata({
-  params: { locale }
+  params
 }: {
-  params: { locale: Locale }
+  params: Promise<{ locale: Locale }>
 }): Promise<Metadata> {
+  const { locale } = await params
   const messages = await getMessages({ locale })
 
   return {
@@ -32,11 +33,12 @@ export async function generateMetadata({
 
 export default async function LocaleLayout({
   children,
-  params: { locale }
+  params
 }: {
   children: React.ReactNode
-  params: { locale: Locale }
+  params: Promise<{ locale: Locale }>
 }) {
+  const { locale } = await params
   // Validate locale
   if (!locales.includes(locale)) {
     notFound()

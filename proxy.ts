@@ -1,11 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { updateSession } from '@/lib/supabase/middleware'
-import { rateLimiter } from '@/lib/rate-limit'
 import { locales, defaultLocale } from '@/i18n'
 
 // Rate limit exempt paths
 const RATE_LIMIT_EXEMPT = [
-  '/api/health',  // Health check endpoint
+  '/api/health',
   '/_next',
   '/favicon',
   '/icons',
@@ -13,13 +11,11 @@ const RATE_LIMIT_EXEMPT = [
 ]
 
 function getLocale(request: NextRequest): string {
-  // Check for locale cookie first
   const localeCookie = request.cookies.get('NEXT_LOCALE')?.value
   if (localeCookie && locales.includes(localeCookie as typeof locales[number])) {
     return localeCookie
   }
 
-  // Check Accept-Language header
   const acceptLanguage = request.headers.get('accept-language')
   if (acceptLanguage) {
     const preferred = acceptLanguage.split(',')[0].split('-')[0]
@@ -31,7 +27,22 @@ function getLocale(request: NextRequest): string {
   return defaultLocale
 }
 
-export async function middleware(request: NextRequest) {
+/**
+ * Next.js 16 proxy.ts - Synchronous edge routing
+ * 
+ * IMPORTANT: Next.js 16 proxy.ts can only perform:
+ * - rewrites (NextResponse.rewrite)
+ * - redirects (NextResponse.redirect)  
+ * - header modifications (request.headers, response.headers)
+ * 
+ * NO async operations, NO response body modifications, NO database calls
+ * 
+ * Authentication is handled by:
+ * 1. Route handlers (API routes) - server-side auth checks
+ * 2. Server Components - auth via cookies
+ * 3. Client Components - auth via Supabase client
+ */
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Check if pathname is missing locale
@@ -52,40 +63,17 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith('/manifest') ||
       pathname.startsWith('/screenshots/')
     ) {
-      // Continue with session/rate limiting for API routes
-    } else {
-      // Redirect to locale-prefixed path
-      return NextResponse.redirect(
-        new URL(`/${locale}${pathname === '/' ? '' : pathname}`, request.url)
-      )
+      return NextResponse.next()
     }
+    
+    // Redirect to locale-prefixed path
+    return NextResponse.redirect(
+      new URL(`/${locale}${pathname === '/' ? '' : pathname}`, request.url)
+    )
   }
 
-  // First, update Supabase session
-  const response = await updateSession(request)
-
-  // Check if path should be rate limited
-  const path = request.nextUrl.pathname
-  const shouldRateLimit = !RATE_LIMIT_EXEMPT.some(exempt => 
-    path.startsWith(exempt)
-  )
-
-  // Apply rate limiting to API routes
-  if (shouldRateLimit && path.startsWith('/api/')) {
-    const ip = request.ip ?? '127.0.0.1'
-    const allowed = await rateLimiter(ip)
-
-    if (!allowed) {
-      return new NextResponse('Too Many Requests', { 
-        status: 429,
-        headers: {
-          'Retry-After': '1',
-        }
-      })
-    }
-  }
-
-  return response
+  // Continue to next handler
+  return NextResponse.next()
 }
 
 export const config = {
