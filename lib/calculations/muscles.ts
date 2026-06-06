@@ -1,173 +1,103 @@
-import { MUSCLE_GROUPS, type MuscleGroup, type MuscleStatus, type WorkoutSet, type Exercise } from '@/types'
+/**
+ * Muscle status calculation utilities
+ */
 
-export { MUSCLE_GROUPS }
-export type { MuscleGroup, MuscleStatus }
-
-interface MuscleTrainingData {
-  muscle: MuscleGroup
-  lastTrainedDate: Date | null
-  totalVolumeKg: number // Last 7 days
-  isRecoveryWeek: boolean
-}
-
-interface WorkoutSetWithExercise extends WorkoutSet {
-  exercises: Exercise | null
-}
+export type MuscleStatus = 
+  | 'trained_heavy'   // Today
+  | 'trained_light'   // 1-2 days + low volume
+  | 'recovering'      // 1-2 days + high volume
+  | 'fresh'           // 3-5 days or recovery week
+  | 'neglected'       // >7 days without recovery week
 
 /**
- * Calculate muscle status for the muscle map
+ * Get muscle status based on last trained date and volume
  * 
- * @param data - Muscle training data
- * @returns Status for this muscle group
+ * @param lastTrained - Date of last training for this muscle
+ * @param volumeKg - Training volume in kg
+ * @param isRecoveryWeek - Whether current program week is recovery week
+ * @returns Muscle status for visualization
  */
-export function calculateMuscleStatus(
-  data: MuscleTrainingData
+export function getMuscleStatus(
+  lastTrained: Date,
+  volumeKg: number,
+  isRecoveryWeek: boolean
 ): MuscleStatus {
-  // Recovery week: all muscles are "fresh"
-  if (data.isRecoveryWeek) {
+  const daysSinceLast = Math.floor(
+    (Date.now() - lastTrained.getTime()) / (1000 * 60 * 60 * 24)
+  )
+
+  // Recovery week: All muscles are fresh, no "neglected" status
+  if (isRecoveryWeek) {
     return 'fresh'
   }
 
-  // Never trained
-  if (!data.lastTrainedDate) {
-    return 'neglected'
-  }
-
-  const now = new Date()
-  const daysSinceTraining = Math.floor(
-    (now.getTime() - data.lastTrainedDate.getTime()) / (1000 * 60 * 60 * 24)
-  )
-
-  // Calculate weekly average volume (simplified)
-  const avgVolume = data.totalVolumeKg / 7
-  const isHighVolume = avgVolume > 1000 // Threshold for "high volume"
-
-  // Trained today
-  if (daysSinceTraining === 0) {
+  // Today
+  if (daysSinceLast === 0) {
     return 'trained_heavy'
   }
 
-  // 1-2 days ago
-  if (daysSinceTraining <= 2) {
-    return isHighVolume ? 'recovering' : 'trained_light'
+  // 1-2 days
+  if (daysSinceLast <= 2) {
+    return volumeKg > 80 ? 'recovering' : 'trained_light'
   }
 
-  // 3-5 days ago
-  if (daysSinceTraining <= 5) {
+  // 3-5 days
+  if (daysSinceLast <= 5) {
     return 'fresh'
   }
 
-  // > 7 days
+  // >7 days: Neglected (unless recovery week)
   return 'neglected'
 }
 
 /**
- * Get human-readable label for muscle status
- * 
- * @param status - Muscle status
- * @returns German label
- */
-export function getMuscleStatusLabel(status: MuscleStatus): string {
-  const labels: Record<MuscleStatus, string> = {
-    neglected: 'Vernachlässigt',
-    recovering: 'Erholend',
-    fresh: 'Bereit',
-    trained_light: 'Leicht trainiert',
-    trained_heavy: 'Schwer trainiert',
-  }
-  return labels[status]
-}
-
-/**
- * Get description for muscle status
- * 
- * @param status - Muscle status
- * @returns German description
- */
-export function getMuscleStatusDescription(status: MuscleStatus): string {
-  const descriptions: Record<MuscleStatus, string> = {
-    neglected: 'Seit über 7 Tagen nicht trainiert',
-    recovering: 'Erholungsphase nach intensivem Training',
-    fresh: 'Bereit für intensives Training',
-    trained_light: 'Vor kurzem leicht trainiert',
-    trained_heavy: 'Heute bereits trainiert',
-  }
-  return descriptions[status]
-}
-
-/**
- * Get color for muscle status
- * 
- * @param status - Muscle status
- * @returns Tailwind color class
+ * Get color for muscle status (for SVG muscle map)
  */
 export function getMuscleStatusColor(status: MuscleStatus): string {
   const colors: Record<MuscleStatus, string> = {
-    neglected: 'fill-muscle-neglected',
-    recovering: 'fill-muscle-recovering',
-    fresh: 'fill-muscle-fresh',
-    trained_light: 'fill-muscle-trained-light',
-    trained_heavy: 'fill-muscle-trained-heavy',
+    'trained_heavy': '#8b5cf6',   // Purple
+    'trained_light': '#3b82f6',   // Blue
+    'recovering': '#f97316',      // Orange
+    'fresh': '#22c55e',           // Green
+    'neglected': '#ef4444',       // Red
   }
   return colors[status]
 }
 
 /**
- * Calculate muscle group frequency from sets
- * 
- * @param sets - Workout sets with exercise data
- * @returns Frequency map of muscle groups
+ * Get display label for muscle status
  */
-export function calculateMuscleFrequency(
-  sets: WorkoutSetWithExercise[]
-): Record<MuscleGroup, number> {
-  const frequency: Record<string, number> = {}
-  
-  // Initialize all muscles to 0
-  MUSCLE_GROUPS.forEach(muscle => {
-    frequency[muscle] = 0
-  })
-
-  // Count muscle activations
-  sets.forEach(set => {
-    if (!set.exercises) return
-    
-    // Primary muscles count as 1
-    set.exercises.muscle_primary?.forEach(muscle => {
-      frequency[muscle] = (frequency[muscle] || 0) + 1
-    })
-    
-    // Secondary muscles count as 0.5
-    set.exercises.muscle_secondary?.forEach(muscle => {
-      frequency[muscle] = (frequency[muscle] || 0) + 0.5
-    })
-  })
-
-  return frequency as Record<MuscleGroup, number>
+export function getMuscleStatusLabel(status: MuscleStatus): string {
+  const labels: Record<MuscleStatus, string> = {
+    'trained_heavy': 'Heute trainiert',
+    'trained_light': 'Kürzlich trainiert',
+    'recovering': 'Erholung',
+    'fresh': 'Frisch',
+    'neglected': 'Vernachlässigt',
+  }
+  return labels[status]
 }
 
 /**
- * Get display name for muscle group
- * 
- * @param muscle - Muscle group ID
- * @returns German display name
+ * Calculate if a muscle should be trained today based on status
+ * and workout preferences
  */
-export function getMuscleDisplayName(muscle: MuscleGroup): string {
-  const names: Record<MuscleGroup, string> = {
-    chest: 'Brust',
-    shoulders: 'Schultern',
-    biceps: 'Bizeps',
-    triceps: 'Trizeps',
-    forearms: 'Unterarme',
-    abs: 'Bauch',
-    obliques: 'Schräger Bauch',
-    upper_back: 'Oberer Rücken',
-    lower_back: 'Unterer Rücken',
-    lats: 'Latissimus',
-    glutes: 'Gesäß',
-    quads: 'Quadrizeps',
-    hamstrings: 'Beinbizeps',
-    calves: 'Waden',
+export function shouldTrainMuscle(
+  status: MuscleStatus,
+  isRecoveryWeek: boolean,
+  allowTwicePerWeek: boolean = false
+): boolean {
+  if (isRecoveryWeek) {
+    return status === 'fresh' || status === 'neglected'
   }
-  return names[muscle]
+
+  if (status === 'fresh' || status === 'neglected') {
+    return true
+  }
+
+  if (allowTwicePerWeek && (status === 'trained_light' || status === 'recovering')) {
+    return true
+  }
+
+  return false
 }

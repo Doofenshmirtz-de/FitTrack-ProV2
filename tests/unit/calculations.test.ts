@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { calculateRecoveryScore } from '@/lib/calculations/recovery'
 import { calculateTDEE } from '@/lib/calculations/tdee'
+import { getMuscleStatus } from '@/lib/calculations/muscles'
 
 /**
  * Unit Tests for Business Logic
@@ -20,27 +21,30 @@ describe('Recovery Score Calculation', () => {
   }
 
   it('should calculate recovery score with all metrics', () => {
-    const score = calculateRecoveryScore(mockDaily as any, mockWeeklyAvg as any)
+    const result = calculateRecoveryScore(mockDaily as any, mockWeeklyAvg as any)
     
-    expect(score).toBeGreaterThanOrEqual(0)
-    expect(score).toBeLessThanOrEqual(100)
-    expect(typeof score).toBe('number')
+    expect(result.score).toBeGreaterThanOrEqual(0)
+    expect(result.score).toBeLessThanOrEqual(100)
+    expect(typeof result.score).toBe('number')
+    expect(result.isEstimated).toBe(false)
   })
 
   it('should handle missing sleep score gracefully', () => {
     const dailyWithoutSleep = { ...mockDaily, sleep_score: null }
-    const score = calculateRecoveryScore(dailyWithoutSleep as any, mockWeeklyAvg as any)
+    const result = calculateRecoveryScore(dailyWithoutSleep as any, mockWeeklyAvg as any)
     
-    expect(score).toBeGreaterThanOrEqual(0)
-    expect(score).toBeLessThanOrEqual(100)
+    expect(result.score).toBeGreaterThanOrEqual(0)
+    expect(result.score).toBeLessThanOrEqual(100)
+    expect(result.isEstimated).toBe(true) // Marked as estimated
   })
 
   it('should handle missing hrv gracefully', () => {
     const dailyWithoutHrv = { ...mockDaily, hrv_score: null, hrv_rmssd: null }
-    const score = calculateRecoveryScore(dailyWithoutHrv as any, mockWeeklyAvg as any)
+    const result = calculateRecoveryScore(dailyWithoutHrv as any, mockWeeklyAvg as any)
     
-    expect(score).toBeGreaterThanOrEqual(0)
-    expect(score).toBeLessThanOrEqual(100)
+    expect(result.score).toBeGreaterThanOrEqual(0)
+    expect(result.score).toBeLessThanOrEqual(100)
+    expect(result.isEstimated).toBe(true) // Marked as estimated
   })
 })
 
@@ -97,8 +101,6 @@ describe('Muscle Status Calculation', () => {
     const lastTrained = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000) // 8 days ago
     const isRecoveryWeek = false
     
-    // Import the function
-    const { getMuscleStatus } = require('@/lib/calculations/muscles')
     const status = getMuscleStatus(lastTrained, 100, isRecoveryWeek)
     
     expect(status).toBe('neglected')
@@ -108,7 +110,42 @@ describe('Muscle Status Calculation', () => {
     const lastTrained = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000) // 10 days ago
     const isRecoveryWeek = true
     
-    const { getMuscleStatus } = require('@/lib/calculations/muscles')
+    const status = getMuscleStatus(lastTrained, 100, isRecoveryWeek)
+    
+    expect(status).toBe('fresh')
+  })
+
+  it('should identify muscles trained today', () => {
+    const lastTrained = new Date() // Today
+    const isRecoveryWeek = false
+    
+    const status = getMuscleStatus(lastTrained, 150, isRecoveryWeek)
+    
+    expect(status).toBe('trained_heavy')
+  })
+
+  it('should identify recovering muscles (1-2 days + high volume)', () => {
+    const lastTrained = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
+    const isRecoveryWeek = false
+    
+    const status = getMuscleStatus(lastTrained, 100, isRecoveryWeek)
+    
+    expect(status).toBe('recovering')
+  })
+
+  it('should identify trained light (1-2 days + low volume)', () => {
+    const lastTrained = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
+    const isRecoveryWeek = false
+    
+    const status = getMuscleStatus(lastTrained, 50, isRecoveryWeek)
+    
+    expect(status).toBe('trained_light')
+  })
+
+  it('should identify fresh muscles (3-5 days)', () => {
+    const lastTrained = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000) // 4 days ago
+    const isRecoveryWeek = false
+    
     const status = getMuscleStatus(lastTrained, 100, isRecoveryWeek)
     
     expect(status).toBe('fresh')
