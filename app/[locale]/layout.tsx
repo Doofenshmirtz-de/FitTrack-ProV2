@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation"
 import { getMessages } from "next-intl/server"
 import { NextIntlClientProvider } from "next-intl"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import { locales, type Locale } from "@/i18n"
 import { MonitoringProvider } from "@/components/providers/MonitoringProvider"
+import { QueryProvider } from "@/components/providers/QueryProvider"
 import "../globals.css"
 
 const inter = Inter({
@@ -17,15 +18,21 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
 })
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#0a0a0a",
+}
+
 export async function generateMetadata({
   params
 }: {
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
-  console.log("generateMetadata params:", { locale })
   if (!locales.includes(locale as Locale)) {
-    console.log("generateMetadata: locale not found, calling notFound()")
     notFound()
   }
   const messages = await getMessages({ locale: locale as Locale })
@@ -33,6 +40,12 @@ export async function generateMetadata({
   return {
     title: messages.metadata.title as string,
     description: messages.metadata.description as string,
+    manifest: "/manifest.json",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title: messages.metadata.title as string,
+    },
   }
 }
 
@@ -44,10 +57,8 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  console.log("LocaleLayout params:", { locale })
   // Validate locale
   if (!locales.includes(locale as Locale)) {
-    console.log("LocaleLayout: locale not found, calling notFound()")
     notFound()
   }
 
@@ -56,11 +67,13 @@ export default async function LocaleLayout({
 
   return (
     <html lang={typedLocale} className="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} bg-background text-foreground antialiased min-h-screen font-sans`}>
+      <body suppressHydrationWarning className={`${inter.variable} ${jetbrainsMono.variable} bg-background text-foreground antialiased min-h-screen font-sans`}>
         <NextIntlClientProvider locale={typedLocale} messages={messages}>
-          <MonitoringProvider>
-            {children}
-          </MonitoringProvider>
+          <QueryProvider>
+            <MonitoringProvider>
+              {children}
+            </MonitoringProvider>
+          </QueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>
