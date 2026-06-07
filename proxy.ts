@@ -33,7 +33,7 @@ function getLocale(request: NextRequest): string {
  * 2. Server Components - auth via cookies
  * 3. Client Components - auth via Supabase client
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Check if pathname is missing locale
