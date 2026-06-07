@@ -23,7 +23,9 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale } = await params
+  console.log("generateMetadata params:", { locale })
   if (!locales.includes(locale as Locale)) {
+    console.log("generateMetadata: locale not found, calling notFound()")
     notFound()
   }
   const messages = await getMessages({ locale: locale as Locale })
@@ -42,8 +44,10 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  console.log("LocaleLayout params:", { locale })
   // Validate locale
   if (!locales.includes(locale as Locale)) {
+    console.log("LocaleLayout: locale not found, calling notFound()")
     notFound()
   }
 

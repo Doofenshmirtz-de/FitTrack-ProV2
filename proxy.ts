@@ -41,10 +41,13 @@ export function proxy(request: NextRequest) {
     locale => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
   )
 
+  // Add x-next-intl-locale header for next-intl
+  const locale = getLocale(request)
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-next-intl-locale', locale)
+
   // Handle locale redirect
   if (pathnameIsMissingLocale) {
-    const locale = getLocale(request)
-    
     // Skip API routes, static files, and Next.js internals
     if (
       pathname.startsWith('/api/') ||
@@ -54,7 +57,11 @@ export function proxy(request: NextRequest) {
       pathname.startsWith('/manifest') ||
       pathname.startsWith('/screenshots/')
     ) {
-      return NextResponse.next()
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        }
+      })
     }
     
     // Redirect to locale-prefixed path
@@ -63,8 +70,12 @@ export function proxy(request: NextRequest) {
     )
   }
 
-  // Continue to next handler
-  return NextResponse.next()
+  // Continue to next handler with the header
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    }
+  })
 }
 
 export const config = {
