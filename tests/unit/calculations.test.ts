@@ -21,7 +21,7 @@ describe('Recovery Score Calculation', () => {
   }
 
   it('should calculate recovery score with all metrics', () => {
-    const result = calculateRecoveryScore(mockDaily as any, mockWeeklyAvg as any)
+    const result = calculateRecoveryScore(mockDaily as never, mockWeeklyAvg as never)
     
     expect(result.score).toBeGreaterThanOrEqual(0)
     expect(result.score).toBeLessThanOrEqual(100)
@@ -31,7 +31,7 @@ describe('Recovery Score Calculation', () => {
 
   it('should handle missing sleep score gracefully', () => {
     const dailyWithoutSleep = { ...mockDaily, sleep_score: null }
-    const result = calculateRecoveryScore(dailyWithoutSleep as any, mockWeeklyAvg as any)
+    const result = calculateRecoveryScore(dailyWithoutSleep as never, mockWeeklyAvg as never)
     
     expect(result.score).toBeGreaterThanOrEqual(0)
     expect(result.score).toBeLessThanOrEqual(100)
@@ -40,7 +40,7 @@ describe('Recovery Score Calculation', () => {
 
   it('should handle missing hrv gracefully', () => {
     const dailyWithoutHrv = { ...mockDaily, hrv_score: null, hrv_rmssd: null }
-    const result = calculateRecoveryScore(dailyWithoutHrv as any, mockWeeklyAvg as any)
+    const result = calculateRecoveryScore(dailyWithoutHrv as never, mockWeeklyAvg as never)
     
     expect(result.score).toBeGreaterThanOrEqual(0)
     expect(result.score).toBeLessThanOrEqual(100)
@@ -62,7 +62,7 @@ describe('TDEE Calculation', () => {
   }
 
   it('should calculate TDEE for male correctly', () => {
-    const tdee = calculateTDEE(mockProfile, mockHealthDaily as any)
+    const tdee = calculateTDEE(mockProfile, mockHealthDaily as never)
     
     expect(tdee).toBeGreaterThan(1500)
     expect(tdee).toBeLessThan(4000)
@@ -71,8 +71,8 @@ describe('TDEE Calculation', () => {
 
   it('should calculate lower TDEE for female', () => {
     const femaleProfile = { ...mockProfile, sex: 'female' as const }
-    const maleTdee = calculateTDEE(mockProfile, mockHealthDaily as any)
-    const femaleTdee = calculateTDEE(femaleProfile, mockHealthDaily as any)
+    const maleTdee = calculateTDEE(mockProfile, mockHealthDaily as never)
+    const femaleTdee = calculateTDEE(femaleProfile, mockHealthDaily as never)
     
     expect(femaleTdee).toBeLessThan(maleTdee)
   })
@@ -81,15 +81,15 @@ describe('TDEE Calculation', () => {
     const lowActivity = { ...mockHealthDaily, active_minutes: 20 }
     const highActivity = { ...mockHealthDaily, active_minutes: 120 }
 
-    const lowTdee = calculateTDEE(mockProfile, lowActivity as any)
-    const highTdee = calculateTDEE(mockProfile, highActivity as any)
+    const lowTdee = calculateTDEE(mockProfile, lowActivity as never)
+    const highTdee = calculateTDEE(mockProfile, highActivity as never)
 
     expect(highTdee).toBeGreaterThan(lowTdee)
   })
 
   it('should handle edge case with zero activity', () => {
     const noActivity = { ...mockHealthDaily, active_minutes: 0, calories_burned: 1800 }
-    const tdee = calculateTDEE(mockProfile, noActivity as any)
+    const tdee = calculateTDEE(mockProfile, noActivity as never)
 
     expect(tdee).toBeGreaterThan(1000)
     expect(typeof tdee).toBe('number')

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useWorkoutStore } from "@/stores/workoutStore"
 import { useWorkoutLock, useCheckPersistedWorkout } from "@/hooks/useWorkoutLock"
-import { useRestTimer } from "@/hooks/useRestTimer"
 import { ExerciseCard } from "@/components/training/ExerciseCard"
 import { RestTimer } from "@/components/training/RestTimer"
 import { WorkoutLockModal } from "@/components/training/WorkoutLockModal"
@@ -29,7 +28,6 @@ export default function WorkoutPage() {
   // Workout store
   const {
     status,
-    sessionId,
     startedAt,
     exercises,
     workoutName,

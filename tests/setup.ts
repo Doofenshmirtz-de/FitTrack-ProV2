@@ -30,7 +30,7 @@ class MockBroadcastChannel {
     this.name = name
   }
 
-  postMessage(message: unknown) {
+  postMessage(_message: unknown) {
     // Simulate broadcast
   }
 

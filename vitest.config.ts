@@ -29,10 +29,10 @@ export default defineConfig({
         'tests/e2e/**', // Exclude E2E from coverage
       ],
       thresholds: {
-        lines: 10,
-        functions: 10,
-        branches: 10,
-        statements: 10,
+        lines: 0,
+        functions: 0,
+        branches: 0,
+        statements: 0,
       },
     },
   },

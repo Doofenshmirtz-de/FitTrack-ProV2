@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createClient } from "@/lib/supabase/client"
 import type { DailySummary, Profile } from "@/types"
 import { calculateRecoveryScore, calculateStrainScore } from "@/lib/calculations/recovery"
-import { calculateTDEE, type UserProfile } from "@/lib/calculations/tdee"
+import { calculateTDEE } from "@/lib/calculations/tdee"
 import { useHealthRealtime } from "@/hooks/useHealthRealtime"
 
 /**

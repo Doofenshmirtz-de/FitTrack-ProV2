@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from "react"
 import { Search, Loader2, ChevronRight, Package } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { searchByText } from "@/lib/food/openFoodFacts"
 import type { OFFProduct } from "@/types"
 
@@ -93,6 +92,7 @@ export function FoodSearch({ onSelect, className }: FoodSearchProps) {
           >
             {/* Product image or placeholder */}
             {product.image_front_small_url ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={product.image_front_small_url}
                 alt={product.product_name}

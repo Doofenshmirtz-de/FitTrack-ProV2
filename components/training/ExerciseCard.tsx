@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { MoreVertical, Trash2, GripVertical } from "lucide-react"
-import { Button } from "@/components/ui/button"
+
 import { Input } from "@/components/ui/input"
 import { useWorkoutStore, type ExerciseSet, type ActiveExercise } from "@/stores/workoutStore"
 import { cn } from "@/lib/utils/cn"

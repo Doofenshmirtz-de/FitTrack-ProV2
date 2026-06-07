@@ -111,7 +111,6 @@ export function CalorieCard({
   target,
 }: Omit<CalorieRingsProps, 'size' | 'className'>) {
   const remaining = target - consumed
-  const _net = consumed - burned
   
   return (
     <div className="bg-elevated rounded-xl p-4 border border-border">

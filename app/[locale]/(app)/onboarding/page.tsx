@@ -83,11 +83,6 @@ export default function OnboardingPage() {
 
     const supabase = createClient()
 
-    // Calculate age from birth date
-    const birthYear = new Date(birthDate).getFullYear()
-    const currentYear = new Date().getFullYear()
-    const age = currentYear - birthYear
-
     // Update profile
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -188,7 +183,7 @@ export default function OnboardingPage() {
                   {sexOptions.map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => setSex(option.value as any)}
+                      onClick={() => setSex(option.value as "male" | "female" | "other" | "")}
                       className={`
                         p-3 rounded-lg border text-sm font-medium transition-colors
                         ${sex === option.value

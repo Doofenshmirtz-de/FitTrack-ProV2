@@ -57,6 +57,7 @@ export function FoodEntryForm({ product, onSave, onCancel }: FoodEntryFormProps)
       {/* Product info */}
       <div className="flex items-start gap-4">
         {product.image_front_small_url ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={product.image_front_small_url}
             alt={product.product_name}

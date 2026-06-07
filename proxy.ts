@@ -1,15 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { locales, defaultLocale } from '@/i18n'
 
-// Rate limit exempt paths
-const RATE_LIMIT_EXEMPT = [
-  '/api/health',
-  '/_next',
-  '/favicon',
-  '/icons',
-  '/manifest',
-]
-
 function getLocale(request: NextRequest): string {
   const localeCookie = request.cookies.get('NEXT_LOCALE')?.value
   if (localeCookie && locales.includes(localeCookie as typeof locales[number])) {

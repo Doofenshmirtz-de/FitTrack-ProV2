@@ -15,34 +15,31 @@ interface BarcodeScannerProps {
 
 export function BarcodeScanner({ onScan, onClose, className }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastScanned, setLastScanned] = useState<string | null>(null)
   const readerRef = useRef<BrowserMultiFormatReader | null>(null)
 
   const stopScanning = useCallback(() => {
     if (readerRef.current) {
-      (readerRef.current as any).reset?.()
+      (readerRef.current as unknown as { reset?: () => void }).reset?.()
       readerRef.current = null
     }
-    setIsScanning(false)
   }, [])
 
   const startScanning = useCallback(async () => {
     if (!videoRef.current) return
 
     try {
-      setIsScanning(true)
       setError(null)
 
       const codeReader = new BrowserMultiFormatReader()
       readerRef.current = codeReader
 
       // Start decoding from video device
-      const result = await codeReader.decodeFromVideoDevice(
+      await codeReader.decodeFromVideoDevice(
         undefined, // Use default camera
         videoRef.current,
-        (result: Result | undefined, err) => {
+        (result: Result | undefined, _err: unknown) => {
           if (result) {
             const barcode = result.getText()
             
@@ -60,7 +57,6 @@ export function BarcodeScanner({ onScan, onClose, className }: BarcodeScannerPro
     } catch (err) {
       console.error("Scanner error:", err)
       setError("Kamera-Zugriff nicht möglich. Bitte Berechtigungen prüfen.")
-      setIsScanning(false)
     }
   }, [onScan, lastScanned])
 

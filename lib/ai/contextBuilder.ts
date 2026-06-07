@@ -127,10 +127,6 @@ export async function buildAnonymizedContext(userId: string): Promise<Anonymized
     ? weeklySummaries.reduce((sum: number, d: DailySummary) => sum + (d.calories_burned || 0), 0) / weeklySummaries.length
     : 0
 
-  const weeklySteps = weeklySummaries?.length
-    ? weeklySummaries.reduce((sum: number, d: DailySummary) => sum + (d.steps || 0), 0) / weeklySummaries.length
-    : 0
-
   const weeklyProtein = foodLogs?.length
     ? foodLogs.reduce((sum: number, log: FoodLog) => sum + (log.protein_g || 0), 0) / 7
     : 0

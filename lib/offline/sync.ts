@@ -1,13 +1,12 @@
 import { createClient } from '@/lib/supabase/client'
 import {
   offlineQueue,
-  addToQueue,
   removeFromQueue,
   updateRetryCount,
   moveToFailed,
   type PendingOperation
 } from './offlineQueue'
-import type { ExerciseSet, ActiveExercise } from '@/stores/workoutStore'
+import type { ActiveExercise } from '@/stores/workoutStore'
 
 const BATCH_SIZE = 10
 const MAX_RETRIES = 3
