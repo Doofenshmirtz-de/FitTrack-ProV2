@@ -139,19 +139,19 @@ CREATE TRIGGER tr_update_volume_on_delete
 -- ============================================================
 -- Profile Auto-Creation bei User Signup
 -- ============================================================
-CREATE OR REPLACE FUNCTION handle_new_user()
+CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, display_name, onboarding_completed)
+  INSERT INTO public.profiles (id, display_name, onboarding_completed)
   VALUES (NEW.id, NEW.email, FALSE);
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Trigger auf auth.users (wird bei Supabase Auth automatisch ausgeführt)
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================
 -- Updated At Trigger Function

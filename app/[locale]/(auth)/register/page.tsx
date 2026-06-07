@@ -39,7 +39,7 @@ export default function RegisterPage() {
     }
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -53,7 +53,12 @@ export default function RegisterPage() {
       return
     }
 
-    setIsSuccess(true)
+    if (data?.session) {
+      router.push("/onboarding")
+      router.refresh()
+    } else {
+      setIsSuccess(true)
+    }
     setIsLoading(false)
   }
 

@@ -6,8 +6,10 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('Authentication Flow', () => {
-  const testEmail = `test-${Date.now()}@example.com`
-  const testPassword = 'TestPassword123!'
+  const registerEmail = `test-${Date.now()}@example.com`
+  const registerPassword = 'TestPassword123!'
+  const loginEmail = process.env.TEST_USER_EMAIL || registerEmail
+  const loginPassword = process.env.TEST_USER_PASSWORD || registerPassword
 
   test('should complete full registration and onboarding flow', async ({ page }) => {
     // 1. Navigate to register page
@@ -17,8 +19,8 @@ test.describe('Authentication Flow', () => {
     await expect(page.getByRole('heading', { name: /registrieren|sign up/i })).toBeVisible()
     
     // 2. Fill registration form
-    await page.getByLabel(/e-mail|email/i).fill(testEmail)
-    await page.getByLabel(/passwort|password/i).fill(testPassword)
+    await page.getByLabel(/e-mail|email/i).fill(registerEmail)
+    await page.getByLabel(/passwort|password/i).fill(registerPassword)
     await page.getByRole('button', { name: /registrieren|sign up|weiter|continue/i }).click()
     
     // 3. Should redirect to onboarding
@@ -55,8 +57,8 @@ test.describe('Authentication Flow', () => {
     await page.goto('/de/login')
     
     // 2. Fill login form
-    await page.getByLabel(/e-mail|email/i).fill(testEmail)
-    await page.getByLabel(/passwort|password/i).fill(testPassword)
+    await page.getByLabel(/e-mail|email/i).fill(loginEmail)
+    await page.getByLabel(/passwort|password/i).fill(loginPassword)
     await page.getByRole('button', { name: /anmelden|sign in|login/i }).click()
     
     // 3. Should redirect to dashboard
