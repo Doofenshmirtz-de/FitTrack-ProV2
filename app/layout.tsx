@@ -5,7 +5,6 @@ export const metadata: Metadata = {
   title: "FitTrack Pro",
   description: "Your personal health companion - Track training, nutrition and health",
   manifest: "/manifest.json",
-  themeColor: "#0a0a0a",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

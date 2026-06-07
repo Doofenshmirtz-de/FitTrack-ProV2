@@ -8,7 +8,6 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 const config: NextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['*.supabase.co', 'world.openfoodfacts.org'],
     remotePatterns: [
       {
         protocol: 'https',
