@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { buildAnonymizedContext } from "@/lib/ai/contextBuilder"
+import type { AnonymizedAIContext } from "@/types"
 import { z } from "zod"
 
 /**
@@ -206,7 +207,7 @@ export async function POST(request: NextRequest) {
 /**
  * Build system prompt with user context
  */
-function buildSystemPrompt(context: any): string {
+function buildSystemPrompt(context: AnonymizedAIContext): string {
   return `You are FitTrack Pro AI Coach, a knowledgeable and encouraging fitness coach.
 
 USER CONTEXT (anonymized, no PII):

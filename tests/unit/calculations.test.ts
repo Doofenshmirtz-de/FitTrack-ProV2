@@ -57,8 +57,8 @@ describe('TDEE Calculation', () => {
   }
 
   const mockHealthDaily = {
-    activeMinutes: 60,
-    caloriesBurned: 2800,
+    active_minutes: 60,
+    calories_burned: 2800,
   }
 
   it('should calculate TDEE for male correctly', () => {
@@ -78,19 +78,19 @@ describe('TDEE Calculation', () => {
   })
 
   it('should adjust for activity level', () => {
-    const lowActivity = { ...mockHealthDaily, activeMinutes: 20 }
-    const highActivity = { ...mockHealthDaily, activeMinutes: 120 }
-    
+    const lowActivity = { ...mockHealthDaily, active_minutes: 20 }
+    const highActivity = { ...mockHealthDaily, active_minutes: 120 }
+
     const lowTdee = calculateTDEE(mockProfile, lowActivity as any)
     const highTdee = calculateTDEE(mockProfile, highActivity as any)
-    
+
     expect(highTdee).toBeGreaterThan(lowTdee)
   })
 
   it('should handle edge case with zero activity', () => {
-    const noActivity = { ...mockHealthDaily, activeMinutes: 0, caloriesBurned: 1800 }
+    const noActivity = { ...mockHealthDaily, active_minutes: 0, calories_burned: 1800 }
     const tdee = calculateTDEE(mockProfile, noActivity as any)
-    
+
     expect(tdee).toBeGreaterThan(1000)
     expect(typeof tdee).toBe('number')
   })

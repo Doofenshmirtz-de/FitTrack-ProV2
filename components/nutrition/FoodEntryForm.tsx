@@ -87,7 +87,7 @@ export function FoodEntryForm({ product, onSave, onCancel }: FoodEntryFormProps)
           {MEAL_TYPES.map((type) => (
             <button
               key={type.value}
-              onClick={() => setMealType(type.value as any)}
+              onClick={() => setMealType(type.value as 'breakfast' | 'lunch' | 'dinner' | 'snack')}
               className={`p-2 rounded-lg text-sm font-medium transition-colors ${
                 mealType === type.value
                   ? "bg-accent-primary text-white"

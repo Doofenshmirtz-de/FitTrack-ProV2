@@ -27,7 +27,7 @@ export function ExerciseCard({
   exercise,
   exerciseIndex,
   isActive,
-  onCompleteSet,
+  onCompleteSet: _onCompleteSet,
   previousBest,
 }: ExerciseCardProps) {
   const { logSet, deleteSet, updateSet, completeSet } = useWorkoutStore()

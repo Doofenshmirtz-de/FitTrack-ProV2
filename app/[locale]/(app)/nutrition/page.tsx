@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, Suspense, lazy } from "react"
-import { Plus, Barcode, Search, Camera, ChevronRight } from "lucide-react"
+import { Barcode, Search, Camera, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"

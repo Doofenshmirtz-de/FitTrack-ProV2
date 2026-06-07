@@ -54,11 +54,11 @@ export default function OnboardingPage() {
     const weightNum = parseFloat(weight)
     const birthYear = new Date(birthDate).getFullYear()
     const currentYear = new Date().getFullYear()
-    const age = currentYear - birthYear
+    const _age = currentYear - birthYear
 
     if (!height || heightNum < 100 || heightNum > 250) return false
     if (!weight || weightNum < 30 || weightNum > 300) return false
-    if (!birthDate || age < 13 || age > 120) return false
+    if (!birthDate || _age < 13 || _age > 120) return false
     if (!sex) return false
 
     return true

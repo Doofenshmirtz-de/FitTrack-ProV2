@@ -1,16 +1,15 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import { 
-  MUSCLE_GROUPS, 
-  type MuscleGroup, 
+import {
+  type MuscleGroup,
   type MuscleStatus,
   getMuscleDisplayName,
   getMuscleStatusLabel,
   getMuscleStatusDescription,
 } from "@/lib/calculations/muscles"
 import { cn } from "@/lib/utils/cn"
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react"
+import { Sparkles } from "lucide-react"
 
 type View = "front" | "back"
 
@@ -213,7 +212,7 @@ interface ViewProps {
   onMouseUp: () => void
 }
 
-function FrontView({ muscleData, onClick, onMouseDown, onMouseUp }: ViewProps) {
+function FrontView({ onClick, onMouseDown, onMouseUp }: ViewProps) {
   return (
     <g>
       {/* Shoulders */}
@@ -310,7 +309,7 @@ function FrontView({ muscleData, onClick, onMouseDown, onMouseUp }: ViewProps) {
   )
 }
 
-function BackView({ muscleData, onClick, onMouseDown, onMouseUp }: ViewProps) {
+function BackView({ onClick, onMouseDown, onMouseUp }: ViewProps) {
   return (
     <g>
       {/* Upper Back */}

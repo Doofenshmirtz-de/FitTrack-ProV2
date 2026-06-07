@@ -83,7 +83,7 @@ export default function CoachPage() {
       } else {
         throw new Error(data.message || "Failed to get response")
       }
-    } catch (error) {
+    } catch (_error) {
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
