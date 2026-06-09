@@ -60,7 +60,9 @@ export function useHealthRealtime() {
         { event: "new_health_data" },
         handleHealthUpdate
       )
-      .subscribe((status) => {
+
+    try {
+      channel.subscribe((status) => {
         if (status === "SUBSCRIBED") {
           console.log("Connected to health updates")
         }
@@ -68,9 +70,16 @@ export function useHealthRealtime() {
           console.error("Health updates connection error")
         }
       })
+    } catch (err) {
+      console.error("Failed to subscribe to health updates:", err)
+    }
 
     return () => {
-      channel.unsubscribe()
+      try {
+        channel.unsubscribe()
+      } catch (err) {
+        console.error("Failed to unsubscribe:", err)
+      }
     }
   }, [supabase, handleHealthUpdate])
 }
@@ -85,18 +94,27 @@ export function useRealtimeStatus() {
   useEffect(() => {
     const supabase = createClient()
     
-    const channel = supabase
-      .channel("health_updates")
-      .subscribe((state) => {
+    const channel = supabase.channel("health_updates")
+    
+    try {
+      channel.subscribe((state) => {
         if (state === "SUBSCRIBED") {
           setStatus("connected")
         } else if (state === "CHANNEL_ERROR") {
           setStatus("error")
         }
       })
+    } catch (err) {
+      console.error("Failed to subscribe to realtime status:", err)
+      setStatus("error")
+    }
 
     return () => {
-      channel.unsubscribe()
+      try {
+        channel.unsubscribe()
+      } catch (err) {
+        // ignore
+      }
     }
   }, [])
 
