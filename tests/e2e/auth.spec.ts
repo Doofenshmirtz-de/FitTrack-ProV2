@@ -20,7 +20,7 @@ test.describe('Authentication Flow', () => {
     
     // 2. Fill registration form
     await page.getByLabel(/e-mail|email/i).fill(registerEmail)
-    await page.getByLabel(/passwort|password/i).fill(registerPassword)
+    await page.getByLabel(/^passwort$|^password$/i).fill(registerPassword)
     await page.getByRole('button', { name: /registrieren|sign up|weiter|continue/i }).click()
     
     // 3. Should redirect to onboarding
@@ -58,8 +58,8 @@ test.describe('Authentication Flow', () => {
     
     // 2. Fill login form
     await page.getByLabel(/e-mail|email/i).fill(loginEmail)
-    await page.getByLabel(/passwort|password/i).fill(loginPassword)
-    await page.getByRole('button', { name: /anmelden|sign in|login/i }).click()
+    await page.getByLabel(/^passwort$|^password$/i).fill(loginPassword)
+    await page.getByRole('button', { name: /anmelden|sign in/i }).click()
     
     // 3. Should redirect to dashboard
     await expect(page).toHaveURL(/\/de$/)
