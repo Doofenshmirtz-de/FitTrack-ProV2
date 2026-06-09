@@ -112,7 +112,7 @@ export function useRealtimeStatus() {
     return () => {
       try {
         channel.unsubscribe()
-      } catch (err) {
+      } catch {
         // ignore
       }
     }
