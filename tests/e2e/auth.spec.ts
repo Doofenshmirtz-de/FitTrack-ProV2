@@ -21,26 +21,29 @@ test.describe('Authentication Flow', () => {
     // 2. Fill registration form
     await page.getByLabel(/e-mail|email/i).fill(registerEmail)
     await page.getByLabel(/^passwort$|^password$/i).fill(registerPassword)
+    await page.getByLabel(/passwort bestätigen|confirm password/i).fill(registerPassword)
     await page.getByRole('button', { name: /konto erstellen|registrieren|sign up|weiter|continue/i }).click()
     
     // 3. Should redirect to onboarding
     await expect(page).toHaveURL(/\/onboarding/)
     
     // 4. Step 1: Personal data
-    await expect(page.getByText(/deine daten|your data/i)).toBeVisible()
+    await expect(page.getByText(/dein körper|your data|deine daten/i)).toBeVisible()
     await page.getByLabel(/größe|height/i).fill('180')
     await page.getByLabel(/gewicht|weight/i).fill('80')
+    await page.getByLabel(/geburtsdatum|birth date/i).fill('1990-01-01')
+    await page.getByRole('button', { name: 'Männlich' }).click()
     await page.getByRole('button', { name: /weiter|next|continue/i }).click()
     
     // 5. Step 2: Fitness goal
-    await expect(page.getByText(/dein ziel|your goal/i)).toBeVisible()
-    await page.getByLabel(/muskelaufbau|muscle gain/i).check()
-    await page.getByLabel(/aktiv|active/i).check()
+    await expect(page.getByText(/deine ziele|your goal/i)).toBeVisible()
+    await page.getByRole('button', { name: /muskelaufbau|muscle gain/i }).click()
+    await page.getByRole('button', { name: /sehr aktiv|active/i }).click()
     await page.getByRole('button', { name: /weiter|next|continue/i }).click()
     
-    // 6. Step 3: Health Connect (skip)
-    await expect(page.getByText(/health connect/i)).toBeVisible()
-    await page.getByRole('button', { name: /überspringen|skip/i }).click()
+    // 6. Step 3: Connect health data (skip for now)
+    await expect(page.getByRole('heading', { name: 'Health Connect' })).toBeVisible()
+    await page.getByRole('button', { name: /los geht's|start/i }).click()
     
     // 7. Should land on dashboard
     await expect(page).toHaveURL(/\/de$/)
