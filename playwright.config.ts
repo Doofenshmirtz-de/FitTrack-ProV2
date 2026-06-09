@@ -30,6 +30,9 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')` */
     baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
     
+    /* Default locale for tests to prevent /en redirects */
+    locale: 'de-DE',
+    
     /* Collect trace when retrying the failed test */
     trace: 'on-first-retry',
     

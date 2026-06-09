@@ -21,7 +21,7 @@ test.describe('Authentication Flow', () => {
     // 2. Fill registration form
     await page.getByLabel(/e-mail|email/i).fill(registerEmail)
     await page.getByLabel(/^passwort$|^password$/i).fill(registerPassword)
-    await page.getByRole('button', { name: /registrieren|sign up|weiter|continue/i }).click()
+    await page.getByRole('button', { name: /konto erstellen|registrieren|sign up|weiter|continue/i }).click()
     
     // 3. Should redirect to onboarding
     await expect(page).toHaveURL(/\/onboarding/)
