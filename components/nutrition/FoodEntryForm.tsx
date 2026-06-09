@@ -23,6 +23,7 @@ interface FoodEntryFormProps {
     fiber_g: number | null
     sugar_g: number | null
     sodium_mg: number | null
+    meal_type: "breakfast" | "lunch" | "dinner" | "snack"
   }) => void
   onCancel: () => void
 }
@@ -49,6 +50,7 @@ export function FoodEntryForm({ product, onSave, onCancel }: FoodEntryFormProps)
   const handleSave = () => {
     onSave({
       ...foodData,
+      meal_type: mealType,
     })
   }
 

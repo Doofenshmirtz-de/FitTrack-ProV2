@@ -1,6 +1,6 @@
 # FitTrack Pro — Vollständiger Technischer Projektplan
 ## Version: 3.0 · Stand: Juni 2026
-### Stack: Next.js 15 · Supabase · Gemini · Health Connect · Vercel
+### Stack: Next.js 16 · Supabase · Gemini · Health Connect REST API · Vercel
 
 ---
 
@@ -54,7 +54,7 @@ Ein serverbasierter AI-Coach (Google Gemini) analysiert alle drei Datenströme u
 
 | Layer | Technologie | Begründung |
 |-------|-------------|------------|
-| Framework | Next.js 15 (App Router) | Neuster Standard, Server Components, API Routes, native Vercel-Integration, PWA-Support |
+| Framework | Next.js 16 (App Router) | Neuster Standard, Server Components, API Routes, native Vercel-Integration, PWA-Support |
 | Sprache | TypeScript 5 | Typsicherheit für komplexe Health-Datenstrukturen |
 | Styling | Tailwind CSS v4 | Utility-First, perfekt für Dark-Mode / Whoop-Ästhetik |
 | UI Components | shadcn/ui | Headless, vollständig anpassbar, kein Vendor-Lock-in |
@@ -67,7 +67,7 @@ Ein serverbasierter AI-Coach (Google Gemini) analysiert alle drei Datenströme u
 | AI Coach | Google Gemini 2.0 Flash | Multimodal (Text + Bild), kosteneffizient |
 | Food API | Open Food Facts API | Kostenlos, 3M+ Produkte, Barcode + Nährwerte |
 | Barcode | @zxing/browser | In-Browser-Barcode-Scanner, kein Backend nötig |
-| Health Data | Google Health Connect API | On-Device Android API, kein Cloud-Lock-in, generischer Sync-Endpunkt |
+| Health Data | Google Health REST API | Server-to-Server Cloud API für Fit/Health-Daten, kein Lock-in auf mobile Endgeräte |
 | PWA | next-pwa + Workbox | Service Worker, Offline-Fallback, Background Sync |
 | Offline Queue | Dexie.js (IndexedDB) | Lokaler Datenpuffer bei fehlender Serververbindung |
 | Deployment | Vercel | Native Next.js-Support, Edge Functions, Cron Jobs |
@@ -269,8 +269,7 @@ Health Connect (Android)
 ### Was AN Gemini gesendet wird:
 
 ```typescript
-// lib/ai/contextBuilder.ts
-// Wird NUR auf dem Server ausgeführt (/api/ai/chat)
+// Wird in einer Supabase Edge Function ausgeführt (Deno)
 interface AnonymizedAIContext {
   todayMetrics: {
     caloriesConsumed: number;
@@ -316,17 +315,17 @@ interface AnonymizedAIContext {
 ### Server-Side Proxy Pattern
 
 ```
-Client (Browser)
+Client (Browser / App)
     │
-    │  POST /api/ai/chat
+    │  POST https://<supabase-project>.supabase.co/functions/v1/ai-coach
     │  Body: { message: "Was sollte ich heute essen?" }
     │
     ▼
-Next.js API Route (Server — kein API Key im Client!)
+Supabase Edge Function (Deno)
     │
-    ├── Supabase: Metriken für heute + Woche abfragen
+    ├── Supabase DB: Metriken für heute + Woche direkt aus lokaler Datenbank abfragen
     ├── anonymizedContext = buildContext(rawData)  ← filtert alle PII
-    ├── systemPrompt + anonymizedContext + userMessage → Gemini
+    ├── systemPrompt + anonymizedContext + userMessage → Gemini API
     │
     ▼
 Gemini API
@@ -1864,26 +1863,26 @@ volumes:
 - [x] Design-System: Tailwind Config, Whoop Dark-Mode, shadcn/ui Komponenten
 - [x] Bottom Navigation + FAB (Floating Action Button)
 
-**Phase 2: Core Features (COMPLETED ✅)**
-- [x] Health Connect Integration: `/api/health/sync` Endpunkt mit Zod-Validation
-- [x] Health Data: Schema für Herzfrequenz, Schritte, Schlaf, Kalorien
+**Phase 2: Core Features (TEILWEISE ABGESCHLOSSEN 🚧)**
 - [x] Dashboard: Recovery Ring, Strain Gauge, Kalorien-Doppel-Ring, Steps Widget, Sleep Widget
-- [x] Ernährung: Barcode-Scanner (@zxing/browser), Open Food Facts API Integration
-- [x] Ernährung: Produktsuche mit Debounce, Food Entry Form mit Mengen-Eingabe
 - [x] Workout-Logger: Zustand Store mit Persist Middleware, State-Maschine (IDLE→ACTIVE→RESTING→COMPLETING)
 - [x] Workout-Logger: Multi-Tab-Lock via BroadcastChannel, Rest-Timer mit Notifications
-- [x] Trainingsprogramme: 5 Templates (PPL, Upper/Lower, Full Body, Hypertrophy, Strength), 35 Übungen
 - [x] Muskelkarte: SVG Front/Back Views, 14 Muskelgruppen, 5 Status-Farben, Tap/Long-Press Interaktion
-- [x] AI Coach: Gemini 2.0 Flash API, Anonymisierter Kontext-Builder, Chat-UI mit Context-Chips
+- [ ] Health Connect Integration: `/api/health/sync` Endpunkt mit Zod-Validation
+- [ ] Health Data: Schema für Herzfrequenz, Schritte, Schlaf, Kalorien
+- [ ] Ernährung: Barcode-Scanner (@zxing/browser), Open Food Facts API Integration
+- [ ] Ernährung: Produktsuche mit Debounce, Food Entry Form mit Mengen-Eingabe
+- [ ] Trainingsprogramme: 5 Templates (PPL, Upper/Lower, Full Body, Hypertrophy, Strength), 35 Übungen
+- [ ] AI Coach: Gemini 2.0 Flash API, Anonymisierter Kontext-Builder, Chat-UI mit Context-Chips
 
-**Phase 3: Polish (PENDING ⏳)**
+**Phase 3: AI, API & Polish (NEUER FOKUS 🚀)**
+- [ ] **Coach Flow (Gemini & Supabase Edge)**: Gemini als Haupt-KI der App integrieren. Supabase Edge Functions schreiben, um Chat-Logik, Context-Building und Datenbank-Zugriffe zentral zu steuern.
+- [ ] **Nutrition Flow (OFF + Gemini Vision)**: Open Food Facts API anbinden. AI-Foto-Erkennung einbauen (Bild → Gemini schätzt Essen/Gramm → Mapping auf Food-DB).
+- [ ] **Dashboard & Coach (Health API)**: Google Health API (Fit / Connect) anbinden, um echte Live-Daten für Schritte, Schlaf und Vitalwerte in die App zu streamen.
+- [ ] **Workout Flow (Vervollständigung)**: Übungsdatenbank (Supabase) mit Suchfunktion, Modals und echter Set/Rep-Speicherung implementieren.
 - [ ] Offline-Queue: Dexie.js IndexedDB Integration + Batch-Sync
 - [ ] PWA: next-pwa Setup, Service Worker, Manifest
-- [ ] i18n: next-intl Setup für DE/EN
-- [ ] Testing: Vitest Unit-Tests, Playwright E2E (5 kritische User-Journeys)
-- [ ] Monitoring: Sentry Error-Tracking, PostHog Analytics
-- [ ] Security: CSP Headers, Rate Limiting Middleware
-- [ ] CI/CD: GitHub Actions Workflow (Lint → Typecheck → Test → Deploy)
+- [ ] Testing: Vitest Unit-Tests, Playwright E2E aktivieren, sobald Features stehen
 - [ ] Vercel Deployment + Environment Variables Setup
 
 ### V2 — Post-MVP

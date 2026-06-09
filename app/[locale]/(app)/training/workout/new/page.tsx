@@ -19,6 +19,8 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
+import { ExercisePicker } from "@/components/training/ExercisePicker"
 
 export default function WorkoutPage() {
   const router = useRouter()
@@ -35,7 +37,11 @@ export default function WorkoutPage() {
     endWorkout,
     reset,
     addExercise,
+    finalizeWorkout,
   } = useWorkoutStore()
+
+  const [showExercisePicker, setShowExercisePicker] = useState(false)
+  const supabase = createClient()
 
   // Multi-tab lock
   const isLockedByOtherTab = useWorkoutLock(status !== 'IDLE')
@@ -73,13 +79,22 @@ export default function WorkoutPage() {
     setIsCompleting(true)
     endWorkout()
     
-    // In a real implementation, we would sync to Supabase here
-    // For now, we'll just simulate a delay and reset
-    setTimeout(() => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (session?.user?.id) {
+        await finalizeWorkout(session.user.id)
+      } else {
+        console.error("User not found in session")
+        reset()
+      }
+    } catch (e) {
+      console.error("Failed to finalize workout", e)
       reset()
-      setIsCompleting(false)
-      router.push('/training')
-    }, 1000)
+    }
+    
+    setIsCompleting(false)
+    router.push('/training')
   }
 
   const handleTakeOver = () => {
@@ -200,7 +215,7 @@ export default function WorkoutPage() {
             <p className="text-foreground-secondary mb-4">
               Noch keine Übungen hinzugefügt
             </p>
-            <Button onClick={() => addExercise('squat', 'Kniebeuge')}>
+            <Button onClick={() => setShowExercisePicker(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Erste Übung
             </Button>
@@ -219,7 +234,7 @@ export default function WorkoutPage() {
 
         {/* Add Exercise Button */}
         <button
-          onClick={() => addExercise(`exercise-${Date.now()}`, 'Neue Übung')}
+          onClick={() => setShowExercisePicker(true)}
           className="w-full py-4 border-2 border-dashed border-border rounded-xl text-foreground-secondary hover:text-foreground hover:border-border-focus transition-colors flex items-center justify-center gap-2"
         >
           <Plus className="w-5 h-5" />
@@ -249,6 +264,16 @@ export default function WorkoutPage() {
           </div>
         </div>
       </div>
+
+      {showExercisePicker && (
+        <ExercisePicker 
+          onClose={() => setShowExercisePicker(false)}
+          onSelect={(id, name) => {
+            addExercise(id, name)
+            setShowExercisePicker(false)
+          }}
+        />
+      )}
     </div>
   )
 }

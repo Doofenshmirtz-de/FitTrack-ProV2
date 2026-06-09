@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FoodSearch } from "@/components/nutrition/FoodSearch"
 import { FoodEntryForm } from "@/components/nutrition/FoodEntryForm"
 import type { OFFProduct } from "@/types"
+import { createClient } from "@/lib/supabase/client"
+import { useQueryClient } from "@tanstack/react-query"
+import { useDashboardData } from "@/lib/queries/dashboard"
 
 // Dynamically import BarcodeScanner to avoid prerendering issues
 const BarcodeScanner = lazy(() => import("@/components/nutrition/BarcodeScanner").then(mod => ({ default: mod.BarcodeScanner })))
@@ -38,6 +41,15 @@ export default function NutritionPage() {
     setSelectedProduct(product)
   }
 
+  const queryClient = useQueryClient()
+  
+  const { food, calorieTarget } = useDashboardData()
+  const consumed = Math.round(food?.calories || 0)
+  const protein = Math.round(food?.protein || 0)
+  const carbs = Math.round(food?.carbs || 0)
+  const fat = Math.round(food?.fat || 0)
+  const target = Math.round(calorieTarget || 2500)
+
   const handleSaveFood = async (data: {
     food_name: string
     brand_name: string | null
@@ -51,18 +63,48 @@ export default function NutritionPage() {
     fiber_g: number | null
     sugar_g: number | null
     sodium_mg: number | null
+    meal_type: "breakfast" | "lunch" | "dinner" | "snack"
   }) => {
-    // TODO: Save to Supabase
-    console.log("Saving food:", data)
-    setSelectedProduct(null)
-  }
+    try {
+      const supabase = createClient()
+      const { data: sessionData } = await supabase.auth.getSession()
+      
+      if (!sessionData.session?.user?.id) {
+        throw new Error("No active session")
+      }
 
-  // Summary data (placeholder - will come from useDashboardData)
-  const consumed = 0
-  const protein = 0
-  const carbs = 0
-  const fat = 0
-  const target = 2500
+      const { error } = await supabase.from("food_logs").insert({
+        user_id: sessionData.session.user.id,
+        food_name: data.food_name,
+        brand_name: data.brand_name,
+        barcode: data.barcode,
+        openfoodfacts_id: data.openfoodfacts_id,
+        quantity_g: data.quantity_g,
+        calories: data.calories,
+        protein_g: data.protein_g,
+        carbs_g: data.carbs_g,
+        fat_g: data.fat_g,
+        fiber_g: data.fiber_g,
+        sugar_g: data.sugar_g,
+        sodium_mg: data.sodium_mg,
+        meal_type: data.meal_type || "snack",
+        logged_at: new Date().toISOString()
+      })
+
+      if (error) throw error
+
+      alert(`${data.food_name} wurde erfolgreich gespeichert!`)
+      setSelectedProduct(null)
+      
+      // Refresh summary data
+      queryClient.invalidateQueries({ queryKey: ["food-logs", "today"] })
+      queryClient.invalidateQueries({ queryKey: ["daily-summary", "today"] })
+      
+    } catch (err) {
+      console.error("Error saving food log:", err)
+      alert("Fehler beim Speichern der Mahlzeit.")
+    }
+  }
 
   return (
     <div className="space-y-6 pt-4 pb-safe-bottom">

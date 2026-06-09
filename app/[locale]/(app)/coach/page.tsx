@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Send, Sparkles, Loader2, Calendar, Dumbbell, Utensils, Moon, Activity } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
+import { createClient } from "@/lib/supabase/client"
 
 interface Message {
   id: string
@@ -56,10 +57,13 @@ export default function CoachPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/ai/chat", {
+      const { data: { session } } = await createClient().auth.getSession()
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/ai-coach`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(session?.access_token ? { "Authorization": `Bearer ${session.access_token}` } : {})
         },
         body: JSON.stringify({
           message: text,
@@ -70,20 +74,42 @@ export default function CoachPage() {
         }),
       })
 
-      const data = await response.json()
-
-      if (response.ok) {
-        const assistantMessage: Message = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: data.reply,
-          timestamp: new Date(),
-        }
-        setMessages((prev) => [...prev, assistantMessage])
-      } else {
-        throw new Error(data.message || "Failed to get response")
+      if (!response.ok) {
+        throw new Error("Failed to get response")
       }
-    } catch {
+      
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let fullResponse = "";
+
+      // Create an empty message that we will stream into
+      const assistantMessageId = crypto.randomUUID();
+      setMessages((prev) => [...prev, {
+        id: assistantMessageId,
+        role: "assistant",
+        content: "",
+        timestamp: new Date(),
+      }]);
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunkValue = decoder.decode(value, { stream: true });
+        
+        fullResponse += chunkValue;
+        
+        setMessages((prev) => 
+          prev.map((msg) => 
+            msg.id === assistantMessageId 
+              ? { ...msg, content: fullResponse }
+              : msg
+          )
+        );
+      }
+    } catch (err) {
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
