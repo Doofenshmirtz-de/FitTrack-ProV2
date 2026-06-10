@@ -51,6 +51,8 @@ export async function searchByText(query: string, page: number = 1): Promise<{
   try {
     const searchParams = new URLSearchParams({
       search_terms: query,
+      search_simple: "1",
+      action: "process",
       page: page.toString(),
       page_size: "10",
       json: "1",
