@@ -145,7 +145,7 @@ export function FoodEntryForm({ product, onSave, onCancel }: FoodEntryFormProps)
           />
           <select 
             value={unit} 
-            onChange={(e) => setUnit(e.target.value as any)}
+            onChange={(e) => setUnit(e.target.value as "g" | "ml" | "kg" | "Liter")}
             className="flex h-10 w-24 items-center justify-between rounded-md border border-overlay bg-elevated px-3 py-2 text-sm ring-offset-background placeholder:text-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="g">g</option>

@@ -25,7 +25,7 @@ export async function hybridSearch(query: string, page: number = 1): Promise<{
 
       if (!blsError && blsData) {
         // Map BLS row to OFFProduct interface so the UI handles it seamlessly
-        blsResults = (blsData as any[]).map((item: any) => ({
+        blsResults = (blsData as import("@/lib/supabase/database.types").Database["public"]["Tables"]["bls_foods"]["Row"][]).map((item) => ({
           code: item.id,
           product_name: item.food_name,
           brands: "BLS Datenbank 🇩🇪", // Special marker for UI

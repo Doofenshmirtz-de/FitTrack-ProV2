@@ -65,3 +65,27 @@ export function useDeleteFoodLog() {
     },
   })
 }
+
+/**
+ * Update a specific food log
+ */
+export function useUpdateFoodLog() {
+  const queryClient = useQueryClient()
+  const supabase = createClient()
+
+  return useMutation({
+    mutationFn: async ({ id, updates }: { id: string, updates: Partial<FoodLog> }) => {
+      const { error } = await supabase
+        .from("food_logs" as never)
+        .update(updates as never)
+        .eq("id", id)
+      
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["food-logs-list", "today"] })
+      queryClient.invalidateQueries({ queryKey: ["food-logs", "today"] })
+      queryClient.invalidateQueries({ queryKey: ["daily-summary", "today"] })
+    },
+  })
+}
