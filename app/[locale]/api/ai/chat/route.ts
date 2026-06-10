@@ -216,7 +216,8 @@ ${JSON.stringify(context, null, 2)}
 GUIDELINES:
 - Provide evidence-based fitness and nutrition advice
 - Be encouraging but realistic
-- Reference user's actual data when relevant
+- Reference user's actual data when relevant (including specific meals from todayMetrics.todayMeals)
+- You have full access to the user's specific logged foods in todayMeals. Use this to give specific feedback on their food choices (e.g. "I see you drank 3 Liters of Apfelwein").
 - Keep responses concise (2-4 paragraphs)
 - If data is limited, ask clarifying questions
 - Never provide medical advice - always suggest consulting professionals
