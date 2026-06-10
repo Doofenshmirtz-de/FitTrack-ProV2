@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { FoodSearch } from "@/components/nutrition/FoodSearch"
 import { FoodEntryForm } from "@/components/nutrition/FoodEntryForm"
+import { FoodLogList } from "@/components/nutrition/FoodLogList"
 import type { OFFProduct } from "@/types"
 import { createClient } from "@/lib/supabase/client"
 import { useQueryClient } from "@tanstack/react-query"
@@ -263,12 +264,7 @@ export default function NutritionPage() {
           <CardTitle className="text-h2">Heutige Mahlzeiten</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-foreground-secondary">
-            <p>Noch keine Mahlzeiten geloggt</p>
-            <p className="text-body-sm mt-1">
-              Füge deine erste Mahlzeit oben hinzu
-            </p>
-          </div>
+          <FoodLogList />
         </CardContent>
       </Card>
     </div>

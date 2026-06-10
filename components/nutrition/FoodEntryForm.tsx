@@ -37,13 +37,31 @@ const MEAL_TYPES = [
 
 export function FoodEntryForm({ product, onSave, onCancel }: FoodEntryFormProps) {
   const [quantity, setQuantity] = useState(100)
+  const [unit, setUnit] = useState<"g" | "ml" | "kg" | "Liter">("g")
   const [mealType, setMealType] = useState<"breakfast" | "lunch" | "dinner" | "snack">("snack")
 
-  // Calculate macros based on quantity
-  const foodData = mapOFFToFoodLog(product, quantity)
+  // Calculate actual grams based on unit
+  const getMultiplier = (u: string) => {
+    if (u === "kg" || u === "Liter") return 1000;
+    return 1; // g and ml
+  }
+  
+  const quantityInGrams = quantity * getMultiplier(unit)
+
+  // Calculate macros based on quantity in grams
+  const foodData = mapOFFToFoodLog(product, quantityInGrams)
 
   const adjustQuantity = (delta: number) => {
-    const newQuantity = Math.max(10, quantity + delta)
+    // If unit is kg or Liter, delta should be smaller (e.g. 0.1 instead of 10)
+    const isLargeUnit = unit === "kg" || unit === "Liter"
+    const step = isLargeUnit ? (delta > 0 ? 0.1 : -0.1) : delta
+    const minVal = isLargeUnit ? 0.1 : 10
+    
+    // We handle precision issues with rounding for large units
+    const newQuantity = Math.max(minVal, isLargeUnit 
+      ? Math.round((quantity + step) * 10) / 10 
+      : quantity + step
+    )
     setQuantity(newQuantity)
   }
 
@@ -106,27 +124,40 @@ export function FoodEntryForm({ product, onSave, onCancel }: FoodEntryFormProps)
       {/* Quantity */}
       <div>
         <Label className="text-caption uppercase text-foreground-secondary tracking-wider">
-          Menge (g)
+          Menge
         </Label>
-        <div className="flex items-center gap-4 mt-2">
+        <div className="flex items-center gap-2 mt-2">
           <Button
             variant="outline"
             size="icon"
             onClick={() => adjustQuantity(-10)}
-            disabled={quantity <= 10}
+            disabled={quantity <= (unit === "kg" || unit === "Liter" ? 0.1 : 10)}
+            className="shrink-0"
           >
             <Minus className="w-4 h-4" />
           </Button>
           <Input
             type="number"
             value={quantity}
-            onChange={(e) => setQuantity(Math.max(10, parseInt(e.target.value) || 0))}
-            className="text-center text-h2 font-bold w-28"
+            step={unit === "kg" || unit === "Liter" ? "0.1" : "1"}
+            onChange={(e) => setQuantity(Math.max(unit === "kg" || unit === "Liter" ? 0.1 : 1, parseFloat(e.target.value) || 0))}
+            className="text-center font-bold flex-1"
           />
+          <select 
+            value={unit} 
+            onChange={(e) => setUnit(e.target.value as any)}
+            className="flex h-10 w-24 items-center justify-between rounded-md border border-overlay bg-elevated px-3 py-2 text-sm ring-offset-background placeholder:text-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="g">g</option>
+            <option value="ml">ml</option>
+            <option value="kg">kg</option>
+            <option value="Liter">Liter</option>
+          </select>
           <Button
             variant="outline"
             size="icon"
             onClick={() => adjustQuantity(10)}
+            className="shrink-0"
           >
             <Plus className="w-4 h-4" />
           </Button>
