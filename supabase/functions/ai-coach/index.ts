@@ -4,29 +4,35 @@ import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.2.1";
 import { corsHeaders } from "../_shared/cors.ts";
 import { buildAnonymizedContext } from "../_shared/contextBuilder.ts";
 
-const genAI = new GoogleGenerativeAI(Deno.env.get("GOOGLE_GEMINI_API_KEY") || "");
+const geminiKey = Deno.env.get("GOOGLE_GEMINI_API_KEY") || "";
+const genAI = new GoogleGenerativeAI(geminiKey);
 
-function buildSystemPrompt(context: any) {
+function buildSystemPrompt(context: Record<string, unknown>) {
+  const tm = context.todayMetrics as Record<string, number>;
+  const up = context.userProfile as Record<string, unknown>;
+  const rt = context.recentTraining as Record<string, unknown>;
+  const mgLastWeek = (rt.muscleGroupsLastWeek as string[]) || [];
+
   return `Du bist "FitTrack Coach", ein KI-Personal-Trainer für die FitTrack Pro App. 
 Dein Ziel ist es, dem Nutzer datenbasierte, präzise und motivierende Antworten zu geben.
 
 Hier sind die anonymisierten Live-Daten des Nutzers:
 ---
 HEUTE:
-- Kalorien: ${context.todayMetrics.caloriesConsumed} / ${context.todayMetrics.caloriesTarget} kcal (Verbrannt: ${context.todayMetrics.caloriesBurned} kcal)
-- Makros: ${context.todayMetrics.proteinG}g Protein | ${context.todayMetrics.carbsG}g Carbs | ${context.todayMetrics.fatG}g Fat
-- Schlaf: ${context.todayMetrics.sleepHours.toFixed(1)}h (Score: ${context.todayMetrics.sleepScore}/100)
-- HRV: ${context.todayMetrics.hrvMorning} ms (Recovery Score: ${context.todayMetrics.recoveryScore}/100)
-- Aktivität: ${context.todayMetrics.stepsToday} Schritte, ${context.todayMetrics.activeMinutes} aktive Minuten
+- Kalorien: ${tm.caloriesConsumed} / ${tm.caloriesTarget} kcal (Verbrannt: ${tm.caloriesBurned} kcal)
+- Makros: ${tm.proteinG}g Protein | ${tm.carbsG}g Carbs | ${tm.fatG}g Fat
+- Schlaf: ${(tm.sleepHours || 0).toFixed(1)}h (Score: ${tm.sleepScore}/100)
+- HRV: ${tm.hrvMorning} ms (Recovery Score: ${tm.recoveryScore}/100)
+- Aktivität: ${tm.stepsToday} Schritte, ${tm.activeMinutes} aktive Minuten
 
 PROFIL:
-- ${context.userProfile.age} Jahre, ${context.userProfile.weightKg}kg, ${context.userProfile.heightCm}cm
-- Ziel: ${context.userProfile.fitnessGoal}
-- Aktivitätslevel: ${context.userProfile.activityLevel}
+- ${up.age} Jahre, ${up.weightKg}kg, ${up.heightCm}cm
+- Ziel: ${up.fitnessGoal}
+- Aktivitätslevel: ${up.activityLevel}
 
 TRAINING:
-- Letztes Workout: vor ${context.recentTraining.lastWorkoutDaysAgo} Tagen
-- Trainierte Muskeln letzte Woche: ${context.recentTraining.muscleGroupsLastWeek.join(', ')}
+- Letztes Workout: vor ${rt.lastWorkoutDaysAgo} Tagen
+- Trainierte Muskeln letzte Woche: ${mgLastWeek.join(', ') || 'keine'}
 ---
 
 REGELN FÜR DEINE ANTWORTEN:
@@ -39,50 +45,85 @@ REGELN FÜR DEINE ANTWORTEN:
 }
 
 serve(async (req) => {
+  // CORS Preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    // 1. Auth-Header prüfen
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("Missing Authorization header");
+      console.error("❌ No Authorization header found in request");
+      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+        status: 401,
+      });
     }
 
+    console.log("✅ Authorization header present, length:", authHeader.length);
+
+    // 2. Supabase Client mit dem User-JWT erstellen
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    
+    console.log("🔧 SUPABASE_URL set:", !!supabaseUrl);
+    console.log("🔧 SUPABASE_ANON_KEY set:", !!supabaseAnonKey);
+    console.log("🔧 GOOGLE_GEMINI_API_KEY set:", !!geminiKey);
+
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      supabaseUrl ?? "",
+      supabaseAnonKey ?? "",
       { global: { headers: { Authorization: authHeader } } }
     );
 
+    // 3. User verifizieren
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      throw new Error("Unauthorized");
+    
+    if (authError) {
+      console.error("❌ Auth error from getUser():", authError.message, authError.status);
+      return new Response(JSON.stringify({ error: "Authentication failed: " + authError.message }), {
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+        status: 401,
+      });
+    }
+    
+    if (!user) {
+      console.error("❌ getUser() returned no error but user is null");
+      return new Response(JSON.stringify({ error: "No user found for this token" }), {
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+        status: 401,
+      });
     }
 
+    console.log("✅ User authenticated:", user.id);
+
+    // 4. Request Body parsen
     const { message, conversationHistory = [] } = await req.json();
+    console.log("📩 Message received, history length:", conversationHistory.length);
 
-    // Context via Shared Logic
+    // 5. Context bauen
     const context = await buildAnonymizedContext(supabase, user.id);
-    const systemPrompt = buildSystemPrompt(context);
+    const systemPrompt = buildSystemPrompt(context as unknown as Record<string, unknown>);
 
+    // 6. Gemini aufrufen
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     
-    // Wir setzen den System Prompt als erste Nachricht in den History-Context
     const chat = model.startChat({
       history: [
         { role: "user", parts: [{ text: systemPrompt }] },
         { role: "model", parts: [{ text: "Verstanden. Ich bin bereit." }] },
-        ...conversationHistory.map((msg: any) => ({
+        ...conversationHistory.map((msg: { role: string; content: string }) => ({
           role: msg.role === "assistant" ? "model" : "user",
           parts: [{ text: msg.content }],
         }))
       ],
     });
 
+    console.log("🤖 Sending to Gemini...");
     const result = await chat.sendMessageStream(message);
 
-    // Stream anlegen und den Context Snapshot im Hintergrund speichern
+    // 7. Stream Response
     let fullResponseText = "";
     
     const stream = new ReadableStream({
@@ -94,8 +135,10 @@ serve(async (req) => {
             controller.enqueue(new TextEncoder().encode(chunkText));
           }
           
-          // Nach dem Streaming in der DB speichern
-          await supabase.from("ai_conversations").insert([
+          console.log("✅ Stream complete, response length:", fullResponseText.length);
+          
+          // Conversation in DB speichern (fire-and-forget)
+          supabase.from("ai_conversations").insert([
             {
               user_id: user.id,
               role: "user",
@@ -107,11 +150,14 @@ serve(async (req) => {
               content: fullResponseText,
               context_snapshot: context,
             }
-          ]);
+          ]).then(({ error: insertError }) => {
+            if (insertError) console.error("⚠️ Failed to save conversation:", insertError.message);
+          });
           
-        } catch (err) {
-          console.error("Streaming error:", err);
-          controller.error(err);
+        } catch (streamErr) {
+          console.error("❌ Streaming error:", streamErr);
+          const errorMsg = streamErr instanceof Error ? streamErr.message : "Stream failed";
+          controller.enqueue(new TextEncoder().encode(`\n\n[Fehler: ${errorMsg}]`));
         } finally {
           controller.close();
         }
@@ -121,16 +167,16 @@ serve(async (req) => {
     return new Response(stream, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
-        "Transfer-Encoding": "chunked",
         ...corsHeaders,
       },
     });
 
   } catch (error) {
-    console.error("Edge Function Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    console.error("❌ Edge Function Error:", errorMsg);
+    return new Response(JSON.stringify({ error: errorMsg }), {
       headers: { "Content-Type": "application/json", ...corsHeaders },
-      status: 400,
+      status: 500,
     });
   }
 });

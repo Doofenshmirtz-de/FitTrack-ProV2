@@ -57,13 +57,19 @@ export default function CoachPage() {
     setIsLoading(true)
 
     try {
-      const { data: { session } } = await createClient().auth.getSession()
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
       
+      if (!session?.access_token) {
+        throw new Error("Du bist nicht eingeloggt. Bitte logge dich erneut ein.")
+      }
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/ai-coach`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(session?.access_token ? { "Authorization": `Bearer ${session.access_token}` } : {})
+          "Authorization": `Bearer ${session.access_token}`,
+          "apikey": process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
         },
         body: JSON.stringify({
           message: text,
@@ -75,7 +81,9 @@ export default function CoachPage() {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to get response")
+        const errorBody = await response.text()
+        console.error("Coach API error:", response.status, errorBody)
+        throw new Error(`Coach-Fehler (${response.status}): ${errorBody}`)
       }
       
       if (!response.body) throw new Error("No response body");
