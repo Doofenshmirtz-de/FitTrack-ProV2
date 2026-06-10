@@ -77,8 +77,9 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // 3. User verifizieren
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // 3. User verifizieren (Token explizit übergeben!)
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
     if (authError) {
       console.error("❌ Auth error from getUser():", authError.message, authError.status);
@@ -107,7 +108,7 @@ serve(async (req) => {
     const systemPrompt = buildSystemPrompt(context as unknown as Record<string, unknown>);
 
     // 6. Gemini aufrufen
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     const chat = model.startChat({
       history: [

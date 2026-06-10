@@ -22,8 +22,10 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
+      console.error("Auth Error:", authError?.message);
       throw new Error("Unauthorized");
     }
 
@@ -33,7 +35,7 @@ serve(async (req) => {
       throw new Error("Missing image data");
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     
     const prompt = `Analyze this food image. Provide a JSON response matching this EXACT structure:
 {

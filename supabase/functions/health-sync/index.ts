@@ -64,9 +64,14 @@ serve(async (req) => {
     const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
       global: { headers: { Authorization: authHeader } }
     });
-    const { data: { user }, error: authError } = await userClient.auth.getUser();
     
-    if (authError || !user) throw new Error("Unauthorized");
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await userClient.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error("Auth Error:", authError?.message);
+      throw new Error("Unauthorized");
+    }
 
     // Get tokens
     const { data: tokenData } = await supabaseClient

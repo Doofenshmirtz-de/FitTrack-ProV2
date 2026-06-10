@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Send, Sparkles, Loader2, Calendar, Dumbbell, Utensils, Moon, Activity } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 import { createClient } from "@/lib/supabase/client"
+import ReactMarkdown from "react-markdown"
 
 interface Message {
   id: string
@@ -183,7 +184,9 @@ export default function CoachPage() {
                     : "bg-elevated text-foreground"
                 )}
               >
-                <p className="text-body-sm whitespace-pre-wrap">{message.content}</p>
+                <div className="text-body-sm space-y-2 [&>ul]:list-disc [&>ul]:ml-4 [&>ol]:list-decimal [&>ol]:ml-4 [&>p]:whitespace-pre-wrap">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
                 <span className="text-caption text-foreground-tertiary mt-1 block">
                   {message.timestamp.toLocaleTimeString("de-DE", {
                     hour: "2-digit",
