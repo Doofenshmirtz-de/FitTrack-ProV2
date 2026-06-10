@@ -9,6 +9,41 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      bls_foods: {
+        Row: {
+          id: string
+          food_name: string
+          calories: number
+          protein_g: number
+          carbs_g: number
+          fat_g: number
+          fiber_g: number | null
+          sugar_g: number | null
+          sodium_mg: number | null
+        }
+        Insert: {
+          id: string
+          food_name: string
+          calories: number
+          protein_g: number
+          carbs_g: number
+          fat_g: number
+          fiber_g?: number | null
+          sugar_g?: number | null
+          sodium_mg?: number | null
+        }
+        Update: {
+          id?: string
+          food_name?: string
+          calories?: number
+          protein_g?: number
+          carbs_g?: number
+          fat_g?: number
+          fiber_g?: number | null
+          sugar_g?: number | null
+          sodium_mg?: number | null
+        }
+      }
       profiles: {
         Row: {
           id: string

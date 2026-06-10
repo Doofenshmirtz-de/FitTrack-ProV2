@@ -18,7 +18,7 @@ export async function searchByBarcode(barcode: string): Promise<OFFProduct | nul
       `${BASE_URL}/api/v0/product/${encodeURIComponent(barcode)}.json`,
       {
         headers: {
-          "User-Agent": "FitTrackPro - Personal Use", // Required by OFF API
+          "User-Agent": "FitTrackPro/1.0 (info@fittrack-pro.de)", // Required by OFF API
         },
         next: { revalidate: 3600 }, // Cache for 1 hour
       }
@@ -62,7 +62,7 @@ export async function searchByText(query: string, page: number = 1): Promise<{
       `${BASE_URL}/cgi/search.pl?${searchParams.toString()}`,
       {
         headers: {
-          "User-Agent": "FitTrackPro - Personal Use",
+          "User-Agent": "FitTrackPro/1.0 (info@fittrack-pro.de)",
         },
         next: { revalidate: 300 }, // Cache for 5 minutes
       }

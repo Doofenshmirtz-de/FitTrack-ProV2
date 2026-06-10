@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react"
 import { Search, Loader2, ChevronRight, Package } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { searchByText } from "@/lib/food/openFoodFacts"
+import { hybridSearch } from "@/lib/food/hybridSearch"
 import type { OFFProduct } from "@/types"
 
 interface FoodSearchProps {
@@ -41,7 +41,7 @@ export function FoodSearch({ onSelect, className }: FoodSearchProps) {
     setHasSearched(true)
 
     try {
-      const data = await searchByText(searchQuery)
+      const data = await hybridSearch(searchQuery)
       setResults(data.products)
     } catch (error) {
       console.error("Search error:", error)
