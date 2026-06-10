@@ -10,6 +10,8 @@ type Profile = {
 };
 
 type FoodLog = {
+  food_name?: string;
+  quantity_g?: number;
   calories?: number;
   protein_g?: number;
   carbs_g?: number;
@@ -54,6 +56,7 @@ export interface AnonymizedAIContext {
     restingHeartRate: number;
     hrvMorning: number;
     recoveryScore: number;
+    todayMeals: string[];
   };
   weeklyTrends: {
     avgCaloriesConsumed: number;
@@ -198,6 +201,7 @@ export async function buildAnonymizedContext(supabase: any, userId: string): Pro
       restingHeartRate: dailySummary?.resting_heart_rate || 60,
       hrvMorning: dailySummary?.hrv_rmssd || 50,
       recoveryScore: dailySummary?.hrv_score || 50,
+      todayMeals: foodLogs?.map(log => `${log.food_name || 'Unbekannt'} (${log.quantity_g || 0}g/ml) - ${log.calories || 0} kcal, ${log.protein_g || 0}g P, ${log.carbs_g || 0}g C, ${log.fat_g || 0}g F`) || [],
     },
     weeklyTrends: {
       avgCaloriesConsumed: Math.round(weeklyCalories),

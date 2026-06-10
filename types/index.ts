@@ -277,6 +277,7 @@ export interface AnonymizedAIContext {
     restingHeartRate: number;
     hrvMorning: number;
     recoveryScore: number;
+    todayMeals: string[];
   };
   weeklyTrends: {
     avgCaloriesConsumed: number;
