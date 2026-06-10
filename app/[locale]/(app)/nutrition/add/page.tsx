@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Camera, Upload, X, Loader2, Save } from "lucide-react"
+import { Camera, Upload, X, Loader2, Save, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/client"
@@ -19,13 +19,15 @@ interface FoodItem {
   portion_description: string
 }
 
+type MealType = "breakfast" | "lunch" | "dinner" | "snack"
+
 export default function AddFoodPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<FoodItem[] | null>(null)
-  const [mealType, setMealType] = useState<"breakfast" | "lunch" | "dinner" | "snack">("snack")
+  const [mealType, setMealType] = useState<MealType>("snack")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,8 +35,8 @@ export default function AddFoodPage() {
     if (!file) return
 
     const reader = new FileReader()
-    reader.onload = (e) => {
-      setImagePreview(e.target?.result as string)
+    reader.onload = (evt) => {
+      setImagePreview(evt.target?.result as string)
     }
     reader.readAsDataURL(file)
   }
@@ -86,27 +88,30 @@ export default function AddFoodPage() {
       
       if (!sessionData.session?.user?.id) throw new Error("No active session")
 
-      const inserts = result.map(item => ({
-        user_id: sessionData.session.user.id,
-        food_name: item.name,
-        calories: item.calories,
-        protein_g: item.protein_g,
-        carbs_g: item.carbs_g,
-        fat_g: item.fat_g,
-        meal_type: mealType,
-        logged_at: new Date().toISOString(),
-      }))
+      const userId = sessionData.session.user.id
 
-      const { error } = await supabase.from("food_logs").insert(inserts)
-
-      if (error) throw error
+      for (const item of result) {
+        const { error } = await supabase.from("food_logs").insert({
+          user_id: userId,
+          food_name: item.name,
+          calories: item.calories,
+          protein_g: item.protein_g,
+          carbs_g: item.carbs_g,
+          fat_g: item.fat_g,
+          meal_type: mealType,
+          logged_at: new Date().toISOString(),
+          ai_estimated: true,
+          ai_confidence: item.confidence,
+        } as never)
+        if (error) throw error
+      }
 
       alert(`${result.length} Mahlzeit(en) erfolgreich gespeichert!`)
       queryClient.invalidateQueries({ queryKey: ["food-logs", "today"] })
       queryClient.invalidateQueries({ queryKey: ["daily-summary", "today"] })
       router.push("/nutrition")
-    } catch (err) {
-      console.error(err)
+    } catch (_err) {
+      console.error(_err)
       alert("Fehler beim Speichern der Mahlzeiten.")
     } finally {
       setIsLoading(false)
@@ -201,10 +206,15 @@ export default function AddFoodPage() {
                   <div>
                     <label className="text-caption uppercase text-foreground-secondary tracking-wider block mb-2">Mahlzeit</label>
                     <div className="grid grid-cols-4 gap-2">
-                      {[{v: "breakfast", l: "Frühstück"}, {v: "lunch", l: "Mittag"}, {v: "dinner", l: "Abend"}, {v: "snack", l: "Snack"}].map(type => (
+                      {([
+                        {v: "breakfast" as MealType, l: "Frühstück"}, 
+                        {v: "lunch" as MealType, l: "Mittag"}, 
+                        {v: "dinner" as MealType, l: "Abend"}, 
+                        {v: "snack" as MealType, l: "Snack"}
+                      ]).map(type => (
                         <button
                           key={type.v}
-                          onClick={() => setMealType(type.v as any)}
+                          onClick={() => setMealType(type.v)}
                           className={`p-2 rounded-lg text-sm font-medium transition-colors ${
                             mealType === type.v
                               ? "bg-accent-primary text-white"
@@ -233,17 +243,5 @@ export default function AddFoodPage() {
         </div>
       )}
     </div>
-  )
-}
-
-function Sparkles(props: any) {
-  return (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-      <path d="M5 3v4"/>
-      <path d="M19 17v4"/>
-      <path d="M3 5h4"/>
-      <path d="M17 19h4"/>
-    </svg>
   )
 }

@@ -109,7 +109,7 @@ export default function CoachPage() {
           )
         );
       }
-    } catch (err) {
+    } catch {
       const errorMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",

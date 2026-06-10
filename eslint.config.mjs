@@ -35,6 +35,8 @@ export default [
       ".next/**",
       "public/**",
       "coverage/**",
+      "playwright-report*/**",
+      "supabase/functions/**",
     ],
   },
 ];

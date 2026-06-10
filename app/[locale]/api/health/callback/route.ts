@@ -41,13 +41,13 @@ export async function GET(request: Request) {
     const supabase = await createClient()
 
     // Upsert into google_tokens table
-    const { error } = await supabase.from("google_tokens").upsert({
+    const { error } = await supabase.from("google_tokens" as never).upsert({
       user_id: userId,
       access_token: tokens.access_token,
       refresh_token: tokens.refresh_token, // Only provided on first auth or prompt=consent
       expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
       scope: tokens.scope,
-    }, { onConflict: 'user_id' })
+    } as never, { onConflict: 'user_id' })
 
     if (error) throw error
 

@@ -89,7 +89,7 @@ export default function NutritionPage() {
         sodium_mg: data.sodium_mg,
         meal_type: data.meal_type || "snack",
         logged_at: new Date().toISOString()
-      })
+      } as never)
 
       if (error) throw error
 
