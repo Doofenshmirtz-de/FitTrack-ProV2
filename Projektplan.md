@@ -1870,14 +1870,14 @@ volumes:
 - [x] Muskelkarte: SVG Front/Back Views, 14 Muskelgruppen, 5 Status-Farben, Tap/Long-Press Interaktion
 - [ ] Health Connect Integration: `/api/health/sync` Endpunkt mit Zod-Validation
 - [ ] Health Data: Schema für Herzfrequenz, Schritte, Schlaf, Kalorien
-- [ ] Ernährung: Barcode-Scanner (@zxing/browser), Open Food Facts API Integration
-- [ ] Ernährung: Produktsuche mit Debounce, Food Entry Form mit Mengen-Eingabe
+- [x] Ernährung: Hybrid-Suche (BLS Datenbank + Open Food Facts API Fallback), Food Log Listenansicht mit Edit/Delete
+- [x] Ernährung: Food Entry Form mit Mengen-Eingabe (g, ml, Liter, kg) und Makro-Berechnung
 - [ ] Trainingsprogramme: 5 Templates (PPL, Upper/Lower, Full Body, Hypertrophy, Strength), 35 Übungen
-- [ ] AI Coach: Gemini 2.0 Flash API, Anonymisierter Kontext-Builder, Chat-UI mit Context-Chips
+- [x] AI Coach: Gemini 2.5 Flash API, Anonymisierter Kontext-Builder (inkl. Mahlzeiten-Daten), Chat-UI
 
 **Phase 3: AI, API & Polish (NEUER FOKUS 🚀)**
-- [ ] **Coach Flow (Gemini & Supabase Edge)**: Gemini als Haupt-KI der App integrieren. Supabase Edge Functions schreiben, um Chat-Logik, Context-Building und Datenbank-Zugriffe zentral zu steuern.
-- [ ] **Nutrition Flow (OFF + Gemini Vision)**: Open Food Facts API anbinden. AI-Foto-Erkennung einbauen (Bild → Gemini schätzt Essen/Gramm → Mapping auf Food-DB).
+- [x] **Coach Flow (Gemini & Supabase Edge)**: Gemini 2.5 Flash integriert. Datenschutz-konformer System Prompt. Supabase Edge Functions für Chat-Logik.
+- [ ] **Nutrition Flow (Gemini Vision)**: AI-Foto-Erkennung einbauen (Bild → Gemini schätzt Essen/Gramm → Mapping auf Food-DB).
 - [ ] **Dashboard & Coach (Health API)**: Google Health API (Fit / Connect) anbinden, um echte Live-Daten für Schritte, Schlaf und Vitalwerte in die App zu streamen.
 - [ ] **Workout Flow (Vervollständigung)**: Übungsdatenbank (Supabase) mit Suchfunktion, Modals und echter Set/Rep-Speicherung implementieren.
 - [ ] Offline-Queue: Dexie.js IndexedDB Integration + Batch-Sync
