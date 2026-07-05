@@ -6,9 +6,10 @@ import { useWorkoutStore } from '@/stores/workoutStore'
 const WORKOUT_CHANNEL = 'fittrack_workout_sync'
 const HEARTBEAT_INTERVAL = 5000
 const LOCK_TIMEOUT = 6000
+const TAKEOVER_GRACE_MS = 5000
 
 interface WorkoutMessage {
-  type: 'WORKOUT_STARTED' | 'WORKOUT_ACTIVE' | 'WORKOUT_ENDED'
+  type: 'WORKOUT_STARTED' | 'WORKOUT_ACTIVE' | 'WORKOUT_ENDED' | 'WORKOUT_TAKEOVER'
   sessionId?: string
   timestamp: number
 }
@@ -17,18 +18,19 @@ interface WorkoutMessage {
  * Prevents multiple workout sessions across tabs using BroadcastChannel
  * 
  * Usage:
- *   const isLocked = useWorkoutLock(isWorkoutActive)
+ *   const { isLockedByOtherTab, takeOver } = useWorkoutLock(isWorkoutActive)
  *   
  *   if (isLockedByOtherTab) {
- *     return <BlockModal />
+ *     return <BlockModal onTakeOver={takeOver} />
  *   }
  */
-export function useWorkoutLock(isActive: boolean): boolean {
+export function useWorkoutLock(isActive: boolean): { isLockedByOtherTab: boolean; takeOver: () => void } {
   const [isLockedByOtherTab, setIsLockedByOtherTab] = useState(false)
   const channelRef = useRef<BroadcastChannel | null>(null)
   const heartbeatRef = useRef<NodeJS.Timeout | null>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastMessageTime = useRef<number>(0)
+  const isTakingOver = useRef(false)
   const sessionId = useWorkoutStore(state => state.sessionId)
 
   const clearTimers = useCallback(() => {
@@ -42,6 +44,27 @@ export function useWorkoutLock(isActive: boolean): boolean {
     }
   }, [])
 
+  const takeOver = useCallback(() => {
+    if (typeof window === 'undefined' || !('BroadcastChannel' in window)) return
+    const channel = channelRef.current
+    if (!channel) return
+
+    isTakingOver.current = true
+    setIsLockedByOtherTab(false)
+
+    // Tell the active tab in other windows to step back
+    channel.postMessage({
+      type: 'WORKOUT_TAKEOVER',
+      timestamp: Date.now(),
+    } as WorkoutMessage)
+
+    // Ignore competing heartbeats from the old tab briefly while it shuts down
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    timeoutRef.current = setTimeout(() => {
+      isTakingOver.current = false
+    }, TAKEOVER_GRACE_MS)
+  }, [])
+
   useEffect(() => {
     // Check for BroadcastChannel support
     if (typeof window === 'undefined' || !('BroadcastChannel' in window)) {
@@ -52,6 +75,53 @@ export function useWorkoutLock(isActive: boolean): boolean {
     // Create channel
     const channel = new BroadcastChannel(WORKOUT_CHANNEL)
     channelRef.current = channel
+
+    // Handle incoming messages in both active and inactive states
+    channel.onmessage = (event: MessageEvent<WorkoutMessage>) => {
+      const { data } = event
+      
+      if (data.type === 'WORKOUT_TAKEOVER') {
+        // Another tab is taking over. If we are the active tab, we should step back.
+        if (isActive) {
+          clearTimers()
+          channel.postMessage({
+            type: 'WORKOUT_ENDED',
+            timestamp: Date.now(),
+          })
+          window.dispatchEvent(new CustomEvent('workout:takenOver'))
+        }
+        return
+      }
+
+      if (data.type === 'WORKOUT_STARTED' || data.type === 'WORKOUT_ACTIVE') {
+        // Ignore while we are taking over ourselves
+        if (isTakingOver.current) return
+
+        // Another tab has an active workout
+        if (data.sessionId && data.sessionId !== sessionId) {
+          setIsLockedByOtherTab(true)
+          lastMessageTime.current = Date.now()
+
+          // Reset timeout
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current)
+          }
+
+          // Auto-release lock if no heartbeat received
+          timeoutRef.current = setTimeout(() => {
+            const timeSinceLastMessage = Date.now() - lastMessageTime.current
+            if (timeSinceLastMessage >= LOCK_TIMEOUT) {
+              setIsLockedByOtherTab(false)
+            }
+          }, LOCK_TIMEOUT + 1000)
+        }
+      }
+
+      if (data.type === 'WORKOUT_ENDED') {
+        setIsLockedByOtherTab(false)
+        clearTimers()
+      }
+    }
 
     if (isActive && sessionId) {
       // This tab is active - send heartbeat
@@ -71,44 +141,15 @@ export function useWorkoutLock(isActive: boolean): boolean {
 
       return () => {
         clearTimers()
-        channel.postMessage({
-          type: 'WORKOUT_ENDED',
-          timestamp: Date.now(),
-        } as WorkoutMessage)
+        if (!isTakingOver.current) {
+          channel.postMessage({
+            type: 'WORKOUT_ENDED',
+            timestamp: Date.now(),
+          })
+        }
         channel.close()
       }
     } else {
-      // This tab is inactive - listen for other tabs
-      channel.onmessage = (event: MessageEvent<WorkoutMessage>) => {
-        const { data } = event
-        
-        if (data.type === 'WORKOUT_STARTED' || data.type === 'WORKOUT_ACTIVE') {
-          // Another tab has an active workout
-          if (data.sessionId && data.sessionId !== sessionId) {
-            setIsLockedByOtherTab(true)
-            lastMessageTime.current = Date.now()
-
-            // Reset timeout
-            if (timeoutRef.current) {
-              clearTimeout(timeoutRef.current)
-            }
-
-            // Auto-release lock if no heartbeat received
-            timeoutRef.current = setTimeout(() => {
-              const timeSinceLastMessage = Date.now() - lastMessageTime.current
-              if (timeSinceLastMessage >= LOCK_TIMEOUT) {
-                setIsLockedByOtherTab(false)
-              }
-            }, LOCK_TIMEOUT + 1000)
-          }
-        }
-
-        if (data.type === 'WORKOUT_ENDED') {
-          setIsLockedByOtherTab(false)
-          clearTimers()
-        }
-      }
-
       return () => {
         clearTimers()
         channel.close()
@@ -116,7 +157,7 @@ export function useWorkoutLock(isActive: boolean): boolean {
     }
   }, [isActive, sessionId, clearTimers])
 
-  return isLockedByOtherTab
+  return { isLockedByOtherTab, takeOver }
 }
 
 /**

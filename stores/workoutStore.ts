@@ -36,7 +36,7 @@ interface WorkoutState {
 
   // Actions
   startWorkout: (params?: { programId?: string; programDayId?: string; name?: string }) => void
-  addExercise: (exerciseId: string, name: string) => void
+  addExercise: (exerciseId: string, name: string, lastSet?: { weightKg: number; reps: number; rpe?: number }) => void
   logSet: (exerciseIndex: number, set: Omit<ExerciseSet, 'id' | 'isCompleted'>) => void
   completeSet: (exerciseIndex: number, setId: string, restSeconds: number) => void
   skipRest: () => void
@@ -46,8 +46,9 @@ interface WorkoutState {
   updateSet: (exerciseIndex: number, setId: string, updates: Partial<ExerciseSet>) => void
   reorderExercises: (fromIndex: number, toIndex: number) => void
   setRpeOverall: (rpe: number) => void
-  finalizeWorkout: (userId: string) => Promise<{ success: boolean; queued: boolean; error?: string }>
+  finalizeWorkout: (userId: string) => Promise<{ success: boolean; queued: boolean; error?: string; summary?: { durationSeconds: number; totalVolumeKg: number; exercises: number; sets: number; startedAt: string; endedAt: string } }>
   getTotalVolume: () => number
+  takeOverWorkout: () => void
 }
 
 const initialState = {
@@ -79,12 +80,26 @@ export const useWorkoutStore = create<WorkoutState>()(
         })
       },
 
-      addExercise: (exerciseId, name) => {
+      addExercise: (exerciseId, name, lastSet) => {
         const { exercises } = get()
+
+        const initialSets = lastSet
+          ? [{
+              id: crypto.randomUUID(),
+              setNumber: 1,
+              weightKg: lastSet.weightKg,
+              reps: lastSet.reps,
+              rpe: lastSet.rpe,
+              isWarmup: false,
+              isCompleted: false,
+              isDropset: false,
+            }]
+          : []
+
         set({
           exercises: [
             ...exercises,
-            { exerciseId, name, sets: [] }
+            { exerciseId, name, sets: initialSets }
           ]
         })
       },
@@ -214,6 +229,17 @@ export const useWorkoutStore = create<WorkoutState>()(
         }, 0)
       },
 
+      takeOverWorkout: () => {
+        const state = get()
+        if (state.status === 'IDLE') return
+
+        set({
+          sessionId: crypto.randomUUID(),
+          status: 'ACTIVE',
+          currentRestEndsAt: null,
+        })
+      },
+
       finalizeWorkout: async (userId: string) => {
         const state = get()
         
@@ -223,6 +249,19 @@ export const useWorkoutStore = create<WorkoutState>()(
 
         const totalVolume = get().getTotalVolume()
         const endedAt = Date.now()
+        const completedSets = state.exercises.reduce(
+          (acc, exercise) => acc + exercise.sets.filter(s => s.isCompleted).length,
+          0
+        )
+
+        const summary = {
+          durationSeconds: Math.floor((endedAt - state.startedAt) / 1000),
+          totalVolumeKg: totalVolume,
+          exercises: state.exercises.length,
+          sets: completedSets,
+          startedAt: new Date(state.startedAt).toISOString(),
+          endedAt: new Date(endedAt).toISOString(),
+        }
 
         const workoutPayload = {
           sessionId: state.sessionId,
@@ -245,7 +284,7 @@ export const useWorkoutStore = create<WorkoutState>()(
             // Offline: zur Queue hinzufügen
             await addToQueue('workout_complete', workoutPayload)
             set({ ...initialState, status: 'IDLE' })
-            return { success: true, queued: true }
+            return { success: true, queued: true, summary }
           }
 
           // Online: direkt sync versuchen
@@ -259,17 +298,17 @@ export const useWorkoutStore = create<WorkoutState>()(
             
             if (stats.pending === 0) {
               set({ ...initialState, status: 'IDLE' })
-              return { success: true, queued: false }
+              return { success: true, queued: false, summary }
             }
           } catch {
             // Sync fehlgeschlagen, zur Queue hinzufügen
             await addToQueue('workout_complete', workoutPayload)
             set({ ...initialState, status: 'IDLE' })
-            return { success: true, queued: true }
+            return { success: true, queued: true, summary }
           }
 
           set({ ...initialState, status: 'IDLE' })
-          return { success: true, queued: false }
+          return { success: true, queued: false, summary }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error'
           
@@ -277,7 +316,7 @@ export const useWorkoutStore = create<WorkoutState>()(
           try {
             await addToQueue('workout_complete', workoutPayload)
             set({ ...initialState, status: 'IDLE' })
-            return { success: true, queued: true }
+            return { success: true, queued: true, summary }
           } catch {
             return { success: false, queued: false, error: errorMessage }
           }

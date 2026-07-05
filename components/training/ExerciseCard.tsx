@@ -11,8 +11,7 @@ interface ExerciseCardProps {
   exercise: ActiveExercise
   exerciseIndex: number
   isActive: boolean
-  onCompleteSet: (setId: string, restSeconds: number) => void
-  previousBest?: { weightKg: number; reps: number }
+  previousSets?: { weightKg: number; reps: number; recordedAt?: string }[]
 }
 
 const REST_PRESETS = [
@@ -27,22 +26,25 @@ export function ExerciseCard({
   exercise,
   exerciseIndex,
   isActive,
-  onCompleteSet: _onCompleteSet,
-  previousBest,
+  previousSets = [],
 }: ExerciseCardProps) {
   const { logSet, deleteSet, updateSet, completeSet } = useWorkoutStore()
   const [showMenu, setShowMenu] = useState(false)
 
+  const lastSet = previousSets[0]
+  const previousBest = previousSets.length > 0
+    ? previousSets.reduce((best, set) =>
+        set.weightKg * set.reps > best.weightKg * best.reps ? set : best
+      )
+    : undefined
+
   const handleAddSet = () => {
+    const lastLoggedSet = exercise.sets[exercise.sets.length - 1]
     const nextSetNumber = exercise.sets.length + 1
     logSet(exerciseIndex, {
       setNumber: nextSetNumber,
-      weightKg: exercise.sets.length > 0 
-        ? exercise.sets[exercise.sets.length - 1].weightKg 
-        : 0,
-      reps: exercise.sets.length > 0 
-        ? exercise.sets[exercise.sets.length - 1].reps 
-        : 0,
+      weightKg: lastLoggedSet?.weightKg ?? lastSet?.weightKg ?? 0,
+      reps: lastLoggedSet?.reps ?? lastSet?.reps ?? 0,
       isWarmup: false,
     })
   }
@@ -57,7 +59,14 @@ export function ExerciseCard({
       <div className="flex items-center justify-between p-4 border-b border-border">
         <div className="flex items-center gap-2">
           <GripVertical className="w-5 h-5 text-foreground-tertiary cursor-move" />
-          <h3 className="font-semibold text-foreground">{exercise.name}</h3>
+          <div>
+            <h3 className="font-semibold text-foreground">{exercise.name}</h3>
+            {lastSet && (
+              <p className="text-caption text-foreground-secondary">
+                Letztes Mal: {lastSet.weightKg} kg × {lastSet.reps}
+              </p>
+            )}
+          </div>
         </div>
         <button
           onClick={() => setShowMenu(!showMenu)}

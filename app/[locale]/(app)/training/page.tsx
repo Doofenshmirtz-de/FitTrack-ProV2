@@ -3,36 +3,64 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Dumbbell, Play, Calendar, Sparkles } from "lucide-react"
+import { Dumbbell, Play, Calendar, Sparkles, TrendingUp, Clock } from "lucide-react"
 import { MuscleMap } from "@/components/training/MuscleMap"
-import type { MuscleGroup, MuscleStatus } from "@/lib/calculations/muscles"
+import { MUSCLE_GROUPS, getMuscleStatus, type MuscleGroup, type MuscleStatus } from "@/lib/calculations/muscles"
+import { useRecentWorkouts, useMuscleVolumeByGroup } from "@/lib/queries/workoutHistory"
 
-// Demo muscle data - in real app, this comes from workout history
-const DEMO_MUSCLE_DATA: Record<MuscleGroup, MuscleStatus> = {
-  chest: "fresh",
-  shoulders: "trained_light",
-  biceps: "fresh",
-  triceps: "neglected",
-  forearms: "fresh",
-  abs: "trained_heavy",
-  obliques: "fresh",
-  upper_back: "recovering",
-  lower_back: "fresh",
-  lats: "recovering",
-  glutes: "fresh",
-  quads: "trained_heavy",
-  hamstrings: "fresh",
-  calves: "fresh",
+function formatDuration(seconds: number): string {
+  const hrs = Math.floor(seconds / 3600)
+  const mins = Math.floor((seconds % 3600) / 60)
+  const secs = seconds % 60
+  if (hrs > 0) {
+    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+}
+
+function formatDate(isoString: string): string {
+  const date = new Date(isoString)
+  return date.toLocaleDateString('de-DE', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
+}
+
+function getMuscleStatusFromVolume(
+  volumeData: Record<string, { volumeKg: number; lastTrainedAt: string }>
+): Record<MuscleGroup, MuscleStatus> {
+  const result: Record<MuscleGroup, MuscleStatus> = {} as Record<MuscleGroup, MuscleStatus>
+
+  for (const muscle of MUSCLE_GROUPS) {
+    const data = volumeData[muscle]
+    if (!data) {
+      result[muscle] = 'fresh'
+      continue
+    }
+
+    result[muscle] = getMuscleStatus(
+      new Date(data.lastTrainedAt),
+      data.volumeKg,
+      false
+    )
+  }
+
+  return result
 }
 
 export default function TrainingPage() {
+  const { data: recentWorkouts = [], isLoading: isLoadingWorkouts } = useRecentWorkouts(5)
+  const { data: muscleVolume = {} } = useMuscleVolumeByGroup(7)
+
+  const muscleData = getMuscleStatusFromVolume(muscleVolume)
+
   const handleMuscleClick = (muscle: MuscleGroup) => {
-    console.log("Clicked muscle:", muscle)
+    window.location.href = `/coach?context=muscle&muscle=${muscle}`
   }
 
-  const handleMuscleLongPress = (muscle: MuscleGroup) => {
-    // Navigate to AI Coach with muscle context
-    window.location.href = `/coach?context=muscle&muscle=${muscle}`
+  const completedSetsForSession = (session: typeof recentWorkouts[number]) => {
+    return session.workout_sets?.filter((set) => !set.is_warmup).length ?? 0
   }
 
   return (
@@ -56,15 +84,17 @@ export default function TrainingPage() {
           </Card>
         </Link>
 
-        <Card className="h-full hover:border-accent-secondary transition-colors cursor-pointer">
-          <CardContent className="p-6 flex flex-col items-center text-center">
-            <div className="w-12 h-12 rounded-full bg-accent-secondary/10 flex items-center justify-center mb-3">
-              <Calendar className="h-6 w-6 text-accent-secondary" />
-            </div>
-            <h3 className="font-semibold mb-1">Programm wählen</h3>
-            <p className="text-sm text-foreground-secondary">Strukturierte Pläne</p>
-          </CardContent>
-        </Card>
+        <Link href="/training/programs">
+          <Card className="h-full hover:border-accent-secondary transition-colors cursor-pointer">
+            <CardContent className="p-6 flex flex-col items-center text-center">
+              <div className="w-12 h-12 rounded-full bg-accent-secondary/10 flex items-center justify-center mb-3">
+                <Calendar className="h-6 w-6 text-accent-secondary" />
+              </div>
+              <h3 className="font-semibold mb-1">Programm wählen</h3>
+              <p className="text-sm text-foreground-secondary">Strukturierte Pläne</p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Muscle Map */}
@@ -80,9 +110,8 @@ export default function TrainingPage() {
         </CardHeader>
         <CardContent>
           <MuscleMap
-            muscleData={DEMO_MUSCLE_DATA}
+            muscleData={muscleData}
             onMuscleClick={handleMuscleClick}
-            onMuscleLongPress={handleMuscleLongPress}
           />
         </CardContent>
       </Card>
@@ -93,15 +122,62 @@ export default function TrainingPage() {
           <CardTitle className="text-h2">Letzte Workouts</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-foreground-secondary">
-            <Dumbbell className="h-12 w-12 mx-auto mb-4 text-foreground-tertiary" />
-            <p>Noch keine Workouts geloggt</p>
-            <Link href="/training/workout/new">
-              <Button variant="outline" className="mt-4">
-                Erstes Workout starten
-              </Button>
-            </Link>
-          </div>
+          {isLoadingWorkouts ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-16 animate-pulse bg-elevated rounded-lg" />
+              ))}
+            </div>
+          ) : recentWorkouts.length === 0 ? (
+            <div className="text-center py-8 text-foreground-secondary">
+              <Dumbbell className="h-12 w-12 mx-auto mb-4 text-foreground-tertiary" />
+              <p>Noch keine Workouts geloggt</p>
+              <Link href="/training/workout/new">
+                <Button variant="outline" className="mt-4">
+                  Erstes Workout starten
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentWorkouts.map((session) => {
+                const durationSeconds = session.duration_seconds ?? Math.floor(
+                  (new Date(session.ended_at || Date.now()).getTime() - new Date(session.started_at).getTime()) / 1000
+                )
+                const sets = completedSetsForSession(session)
+                const volume = session.total_volume_kg ?? 0
+
+                return (
+                  <Link
+                    key={session.id}
+                    href={`/training/workout/history/${session.id}`}
+                    className="block"
+                  >
+                    <div className="flex items-center justify-between p-4 bg-elevated rounded-lg border border-border hover:border-accent-primary transition-colors">
+                      <div>
+                        <p className="font-medium text-foreground">{session.name || 'Workout'}</p>
+                        <p className="text-caption text-foreground-secondary">{formatDate(session.started_at)}</p>
+                      </div>
+                      <div className="flex items-center gap-4 text-caption text-foreground-secondary">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          <span className="font-mono">{formatDuration(durationSeconds)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <TrendingUp className="w-4 h-4" />
+                          <span className="font-mono">{volume.toLocaleString('de-DE')} kg</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Dumbbell className="w-4 h-4" />
+                          <span className="font-mono">{sets}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

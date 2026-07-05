@@ -2,78 +2,68 @@ import { test, expect } from '@playwright/test'
 
 /**
  * E2E Test: Offline Flow
- * Journey: Netzwerk trennen → Set loggen → Online gehen → 
- *          Sync erfolgreich → Daten in DB
+ * Journey: Workout starten → Netzwerk trennen → Set loggen →
+ *          Workout beenden → Summary zeigt Offline-Queue → Banner sichtbar
  */
 
 test.describe('Offline Flow', () => {
   test.beforeEach(async ({ page }) => {
     // Login before each test
     await page.goto('/de/login')
-    await page.getByLabel(/e-mail|email/i).fill(process.env.TEST_USER_EMAIL || 'test@example.com')
-    await page.getByLabel(/passwort|password/i).fill(process.env.TEST_USER_PASSWORD || 'testpassword')
-    await page.getByRole('button', { name: /anmelden|sign in/i }).click()
+    await page.getByLabel('E-Mail').fill(process.env.TEST_USER_EMAIL || 'test@example.com')
+    await page.getByLabel('Passwort').fill(process.env.TEST_USER_PASSWORD || 'testpassword')
+    await page.getByRole('button', { name: 'Anmelden' }).click()
     await expect(page).toHaveURL(/\/de$/)
   })
 
-  test('should handle offline mode and sync', async ({ page, context }) => {
-    // 1. Go to training page and start workout
+  test('should queue workout when offline and show banner', async ({ page, context }) => {
+    // 1. Go to training page and start free workout
     await page.goto('/de/training')
-    await page.getByRole('button', { name: /workout starten|start workout/i }).click()
-    
+    await page.getByRole('link', { name: /workout starten/i }).click()
+    await page.getByRole('button', { name: 'Starten' }).click()
+
     // 2. Add exercise
-    await page.getByRole('button', { name: /übung hinzufügen|add exercise/i }).click()
-    await page.getByText(/bankdrücken|bench press/i).first().click()
-    
+    await page.getByRole('button', { name: 'Übung hinzufügen' }).click()
+    await page.getByText('Kniebeuge').first().click()
+    await expect(page.getByText('Kniebeuge')).toBeVisible()
+
     // 3. Simulate offline
     await context.setOffline(true)
-    
-    // 4. Verify offline indicator
-    await expect(page.getByText(/offline/i)).toBeVisible()
-    
-    // 5. Log a set while offline
-    await page.getByPlaceholder(/gewicht|weight/i).first().fill('60')
-    await page.getByPlaceholder(/wdh|reps/i).first().fill('10')
-    await page.getByRole('button', { name: /hinzufügen|add/i }).first().click()
-    
-    // 6. Complete set
-    await page.getByRole('button', { name: /abschließen|complete/i }).first().click()
-    await page.getByRole('button', { name: /überspringen|skip/i }).click()
-    
-    // 7. Finish workout
-    await page.getByRole('button', { name: /workout beenden|finish/i }).click()
-    await page.getByRole('button', { name: /bestätigen|confirm/i }).click()
-    
-    // 8. Verify queued indicator
-    await expect(page.getByText(/warteschlange|queue|wird synchronisiert|syncing/i)).toBeVisible()
-    
-    // 9. Go back online
+    await expect(page.getByText('Offline - Daten werden lokal gespeichert')).toBeVisible()
+
+    // 4. Log a set while offline
+    const weightInput = page.locator('input[type="number"]').first()
+    const repsInput = page.locator('input[type="number"]').nth(1)
+    await weightInput.fill('100')
+    await repsInput.fill('5')
+
+    await page.getByRole('button', { name: '60' }).first().click()
+    await page.getByRole('button', { name: 'Weiter' }).click()
+
+    // 5. Finish workout
+    await page.getByRole('button', { name: 'Beenden' }).click()
+
+    // 6. Summary should show offline/queued indicator
+    await expect(page.getByText('Geschafft!')).toBeVisible()
+    await expect(page.getByText('Offline gespeichert')).toBeVisible()
+
+    // 7. Restore online
     await context.setOffline(false)
-    
-    // 10. Trigger sync (manual or wait for auto)
-    await page.goto('/de/profile')
-    await page.getByRole('button', { name: /jetzt synchronisieren|sync now/i }).click()
-    
-    // 11. Wait for sync to complete
-    await page.waitForTimeout(3000)
-    
-    // 12. Verify sync success
-    await expect(page.getByText(/erfolgreich|success|abgeschlossen|complete/i)).toBeVisible()
+
+    // 8. Navigate to training and verify workout appears in recent history
+    await page.goto('/de/training')
+    await expect(page.getByText('Kniebeuge')).toBeVisible()
   })
 
   test('should show offline banner when disconnected', async ({ page, context }) => {
     await page.goto('/de')
-    
+
     // Simulate offline
     await context.setOffline(true)
-    
-    // Verify offline banner
-    await expect(page.getByText(/offline/i).first()).toBeVisible()
-    
+    await expect(page.getByText('Offline - Daten werden lokal gespeichert').first()).toBeVisible()
+
     // Restore online
     await context.setOffline(false)
-    
-    // Banner should disappear or show online
-    await expect(page.getByText(/online|verbunden|connected/i).first()).toBeVisible()
+    await expect(page.getByText('Offline - Daten werden lokal gespeichert')).not.toBeVisible()
   })
 })

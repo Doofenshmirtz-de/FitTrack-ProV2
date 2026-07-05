@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils/cn"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { ExercisePicker } from "@/components/training/ExercisePicker"
+import { usePreviousSetsForExercises, getLastWorkoutSet } from "@/lib/queries/workoutHistory"
 
 export default function WorkoutPage() {
   const router = useRouter()
@@ -38,22 +39,39 @@ export default function WorkoutPage() {
     reset,
     addExercise,
     finalizeWorkout,
+    takeOverWorkout,
   } = useWorkoutStore()
 
   const [showExercisePicker, setShowExercisePicker] = useState(false)
   const supabase = createClient()
 
   // Multi-tab lock
-  const isLockedByOtherTab = useWorkoutLock(status !== 'IDLE')
+  const { isLockedByOtherTab, takeOver } = useWorkoutLock(status !== 'IDLE')
 
   // Check for persisted workout on mount
   const { hasPersistedWorkout, resumeWorkout, discardWorkout } = useCheckPersistedWorkout()
+
+  // Load previous sets for all selected exercises to show history
+  const { previousSetsByExercise } = usePreviousSetsForExercises(
+    exercises.map((ex) => ex.exerciseId)
+  )
 
   useEffect(() => {
     if (hasPersistedWorkout && status === 'IDLE') {
       setShowResumeDialog(true)
     }
   }, [hasPersistedWorkout, status])
+
+  // Listen for takeover from another tab
+  useEffect(() => {
+    const handleTakenOver = () => {
+      reset()
+      router.push('/training')
+    }
+
+    window.addEventListener('workout:takenOver', handleTakenOver)
+    return () => window.removeEventListener('workout:takenOver', handleTakenOver)
+  }, [reset, router])
 
   // Calculate workout duration
   const duration = startedAt 
@@ -83,23 +101,41 @@ export default function WorkoutPage() {
       const { data: { session } } = await supabase.auth.getSession()
       
       if (session?.user?.id) {
-        await finalizeWorkout(session.user.id)
+        const result = await finalizeWorkout(session.user.id)
+        if (result.success && result.summary) {
+          const params = new URLSearchParams({
+            name: workoutName,
+            duration: String(result.summary.durationSeconds),
+            volume: String(result.summary.totalVolumeKg),
+            exercises: String(result.summary.exercises),
+            sets: String(result.summary.sets),
+            startedAt: result.summary.startedAt,
+            endedAt: result.summary.endedAt,
+            queued: result.queued ? '1' : '0',
+          })
+          router.push(`/training/workout/summary?${params.toString()}`)
+        } else {
+          reset()
+          router.push('/training')
+        }
       } else {
         console.error("User not found in session")
         reset()
+        router.push('/training')
       }
     } catch (e) {
       console.error("Failed to finalize workout", e)
       reset()
+      router.push('/training')
+    } finally {
+      setIsCompleting(false)
     }
-    
-    setIsCompleting(false)
-    router.push('/training')
   }
 
   const handleTakeOver = () => {
-    // The other tab will detect lock loss and pause
-    // This tab continues with the workout
+    // Generate a fresh session ID and take over the active workout in this tab
+    takeOverWorkout()
+    takeOver()
   }
 
   const handleResumePersisted = () => {
@@ -110,6 +146,18 @@ export default function WorkoutPage() {
   const handleDiscardPersisted = () => {
     discardWorkout()
     setShowResumeDialog(false)
+  }
+
+  const handleAddExercise = async (id: string, name: string) => {
+    const lastSet = await getLastWorkoutSet(id)
+    addExercise(
+      id,
+      name,
+      lastSet
+        ? { weightKg: lastSet.weight_kg, reps: lastSet.reps, rpe: lastSet.rpe ?? undefined }
+        : undefined
+    )
+    setShowExercisePicker(false)
   }
 
   // Resume dialog
@@ -228,7 +276,7 @@ export default function WorkoutPage() {
             exercise={exercise}
             exerciseIndex={index}
             isActive={status === 'ACTIVE'}
-            onCompleteSet={() => {}}
+            previousSets={previousSetsByExercise[exercise.exerciseId]}
           />
         ))}
 
@@ -268,10 +316,7 @@ export default function WorkoutPage() {
       {showExercisePicker && (
         <ExercisePicker 
           onClose={() => setShowExercisePicker(false)}
-          onSelect={(id, name) => {
-            addExercise(id, name)
-            setShowExercisePicker(false)
-          }}
+          onSelect={handleAddExercise}
         />
       )}
     </div>
