@@ -52,33 +52,44 @@ export function useHealthRealtime() {
   )
 
   useEffect(() => {
-    // Subscribe to health_updates channel
-    const channel = supabase
-      .channel("health_updates")
-      .on(
-        "broadcast",
-        { event: "new_health_data" },
-        handleHealthUpdate
-      )
+    let channel: ReturnType<typeof supabase.channel> | null = null
 
-    try {
-      channel.subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          console.log("Connected to health updates")
-        }
-        if (status === "CHANNEL_ERROR") {
-          console.error("Health updates connection error")
-        }
-      })
-    } catch (err) {
-      console.error("Failed to subscribe to health updates:", err)
+    const subscribe = async () => {
+      // Only subscribe if a session exists; otherwise realtime will fail with auth errors
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+
+      channel = supabase
+        .channel("health_updates")
+        .on(
+          "broadcast",
+          { event: "new_health_data" },
+          handleHealthUpdate
+        )
+
+      try {
+        channel.subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            console.log("Connected to health updates")
+          }
+          if (status === "CHANNEL_ERROR") {
+            console.error("Health updates connection error")
+          }
+        })
+      } catch (err) {
+        console.error("Failed to subscribe to health updates:", err)
+      }
     }
 
+    subscribe()
+
     return () => {
-      try {
-        channel.unsubscribe()
-      } catch (err) {
-        console.error("Failed to unsubscribe:", err)
+      if (channel) {
+        try {
+          channel.unsubscribe()
+        } catch (err) {
+          console.error("Failed to unsubscribe:", err)
+        }
       }
     }
   }, [supabase, handleHealthUpdate])

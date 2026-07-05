@@ -1,23 +1,45 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
+import type { User, AuthError } from '@supabase/supabase-js'
 import { setSentryUser, identifyUser, resetUser } from '@/lib/monitoring'
+
+function isInvalidRefreshToken(error: AuthError): boolean {
+  return error.status === 400 && error.code === 'refresh_token_not_found'
+}
 
 export function useSupabaseUser() {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     const supabase = createClient()
 
+    const handleInvalidSession = async () => {
+      try {
+        await supabase.auth.signOut({ scope: 'local' })
+      } catch {
+        // ignore sign-out errors
+      }
+      router.push('/login')
+    }
+
     // Get initial user
     const getUser = async () => {
       const { data: { user }, error } = await supabase.auth.getUser()
-      if (!error && user) {
+      if (error) {
+        if (isInvalidRefreshToken(error)) {
+          await handleInvalidSession()
+        }
+        setIsLoading(false)
+        return
+      }
+
+      if (user) {
         setUser(user)
-        // Set monitoring user context
         setSentryUser({ id: user.id, email: user.email })
         identifyUser(user.id, { email: user.email })
       }
@@ -43,7 +65,7 @@ export function useSupabaseUser() {
     return () => {
       subscription.unsubscribe()
     }
-  }, [])
+  }, [router])
 
   return { user, isLoading }
 }
