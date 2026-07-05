@@ -22,13 +22,14 @@ async function fetchTodaySummary(): Promise<DailySummary | null> {
     .select("*")
     .eq("user_id", user.id)
     .eq("date", today)
-    .single()
-  
-  if (error && error.code !== "PGRST116") { // PGRST116 = not found
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
     console.error("Error fetching daily summary:", error)
     throw error
   }
-  
+
   return data
 }
 
